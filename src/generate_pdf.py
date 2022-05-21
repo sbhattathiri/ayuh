@@ -4,17 +4,17 @@ import time
 
 from fpdf import FPDF
 
-
+# read invoice headers, footers from config file
 config_file = Path(__file__).parent.parent / "ayuh.ini"
 config = configparser.ConfigParser()
 config.read(config_file)
 
+letterhead_name = config.get("pdf", "letterhead_name")
+logo_img_file_name = config.get("pdf", "logo")
+
 
 class PDF(FPDF):
     def header(self):
-        letterhead_name = config.get("pdf", "letterhead_name")
-
-        logo_img_file_name = config.get("pdf", "logo")
         logo_img_file = str(Path(__file__).parent / "resources" / logo_img_file_name)
 
         self.image(logo_img_file, 10, 8, 33)
@@ -43,13 +43,14 @@ def generate_pdf(patient_id, medication_info):
 
     # set PDF pages in A4 Portrait mode
     pdf = PDF("P", "mm", "A4")
+    pdf.alias_nb_pages()
     pdf.add_page()
 
     pdf.set_font("Courier", size=13)
     idx = 0
     for medication_name, price in medication_info.items():
         idx += 1
-        pdf.cell(5, 5, f"{idx: <3} {medication_name: <25} {price: <6}", 0, 1)
+        pdf.cell(5, 3, f"{idx: <3} {medication_name: <25} {price: <6}", 0, 1)
         pdf.ln()
 
     pdf.output(pdf_path)
