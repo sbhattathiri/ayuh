@@ -25,7 +25,7 @@ class PDF(FPDF):
 
         self.cell(40, 10, letterhead_name, "C")
 
-        # self.dashed_line(10, 30, 110, 30, 1, 10)
+        self.dashed_line(30, 30, 110, 30, 1, 10)
         self.ln()
         self.ln()
         self.ln()
