@@ -47,18 +47,19 @@ elements = [
         "name": "letterhead_motto",
         "type": "T",
         "x1": 50.0,
-        "y1": 13.0,
+        "y1": 15.0,
         "x2": 100.0,
-        "y2": 13.0,
+        "y2": 15.0,
         "font": "times",
+        "italic": 1,
         "size": 9.0,
     },
     {
         "name": "letterhead_addr_line1",
         "type": "T",
-        "x1": 120.0,
+        "x1": 140.0,
         "y1": 15.0,
-        "x2": 120.0,
+        "x2": 140.0,
         "y2": 15.0,
         "font": "times",
         "size": 8.0,
@@ -66,30 +67,30 @@ elements = [
     {
         "name": "letterhead_addr_line2",
         "type": "T",
-        "x1": 120.0,
-        "y1": 17.0,
-        "x2": 120.0,
-        "y2": 17.0,
+        "x1": 140.0,
+        "y1": 18.0,
+        "x2": 140.0,
+        "y2": 18.0,
         "font": "times",
         "size": 8.0,
     },
     {
         "name": "letterhead_contact1",
         "type": "T",
-        "x1": 120.0,
-        "y1": 20.0,
-        "x2": 120.0,
-        "y2": 20.0,
+        "x1": 140.0,
+        "y1": 21.0,
+        "x2": 140.0,
+        "y2": 21.0,
         "font": "times",
         "size": 8.0,
     },
     {
         "name": "letterhead_contact2",
         "type": "T",
-        "x1": 120.0,
-        "y1": 22.0,
-        "x2": 120.0,
-        "y2": 22.0,
+        "x1": 140.0,
+        "y1": 24.0,
+        "x2": 140.0,
+        "y2": 24.0,
         "font": "times",
         "size": 8.0,
     },
@@ -119,7 +120,7 @@ def generate_pdf(patient_id, medication_info):
 
     template["letterhead_logo"] = logo_file
     template["letterhead_name"] = letterhead_name
-    # template["letterhead_motto"] = letterhead_motto
+    template["letterhead_motto"] = letterhead_motto
     template["letterhead_addr_line1"] = letterhead_addr_line1
     template["letterhead_addr_line2"] = letterhead_addr_line2
     template["letterhead_contact1"] = letterhead_contact1
@@ -127,19 +128,42 @@ def generate_pdf(patient_id, medication_info):
 
     template.render()
 
-    pdf.set_y(40)
-    pdf.set_font("courier", size=11.0)
+    pdf.set_y(28)
+    pdf.set_font("courier", size=10.0)
 
-    idx = 0
-    for medication_name, price in medication_info.items():
-        idx += 1
-        pdf.cell(5, 3, f"{idx: <3} {medication_name: <25} {price: <6}", 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-        pdf.ln()
+    line_height = pdf.font_size
+
+    # header
+    header = f"{'Item':<55} {'Rate':<7} {'Qty':<7} {'Total':<7}"
+    pdf.cell(30, line_height, header, 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+    dashed_line = f"{'----':<55} {'----':<7} {'---':<7} {'-----':<7}"
+    pdf.cell(30, line_height, dashed_line, 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+
+    for medication_item in medication_info:
+        line_item = f"{medication_item[0]:<55} {medication_item[1]:<7} {medication_item[2]:<7} {(medication_item[1] * medication_item[2]):<7.2f}"
+        pdf.cell(30, line_height, line_item, 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+        pdf.ln(line_height)
 
     pdf.output(pdf_path)
 
 
 if __name__ == "__main__":
-    patient_id = "abc155"
-    medication_info = {"Amruthaarishtam": 10.50, "Chinchaadi Thailam": 11.00}
+    patient_id = "abc101"
+    medication_info = (
+        (
+            "Amruthaarishtam",
+            10.00,
+            1,
+        ),
+        (
+            "Ashtachoornam",
+            11.45,
+            3,
+        ),
+        (
+            "Abhayaarishtam",
+            9.80,
+            2,
+        ),
+    )
     generate_pdf(patient_id=patient_id, medication_info=medication_info)
