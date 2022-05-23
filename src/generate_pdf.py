@@ -134,16 +134,27 @@ def generate_pdf(patient_id, medication_info):
     line_height = pdf.font_size
 
     # header
-    header = f"{'Item':<55} {'Rate':<7} {'Qty':<7} {'Total':<7}"
+    header = f"{'Item':<62} {'Rate':<7} {'Qty':<7} {'Total':<7}"
     pdf.cell(30, line_height, header, 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-    dashed_line = f"{'----':<55} {'----':<7} {'---':<7} {'-----':<7}"
+    dashed_line = f"{'----':<62} {'----':<7} {'---':<7} {'-----':<7}"
     pdf.cell(30, line_height, dashed_line, 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
+    total = 0
     for medication_item in medication_info:
-        line_item = f"{medication_item[0]:<55} {medication_item[1]:<7} {medication_item[2]:<7} {(medication_item[1] * medication_item[2]):<7.2f}"
+        cost_per_lineitem = medication_item[1] * medication_item[2]
+        total += cost_per_lineitem
+        line_item = (
+            f"{medication_item[0]:<62}|{medication_item[1]:<7}| {medication_item[2]:<7}| {cost_per_lineitem:<7.2f}"
+        )
         pdf.cell(30, line_height, line_item, 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         pdf.ln(line_height)
 
+    # total
+    pdf.set_font("courier", "B", size=10.0)
+    pdf.set_text_color(128, 101, 115)
+    pdf.ln(line_height)
+    total_line = f"{'Total':<62} {' ':<7}  {' ':<7}  {total:<7.2f}"
+    pdf.cell(30, line_height, total_line, 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
     pdf.output(pdf_path)
 
 
