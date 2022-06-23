@@ -21,7 +21,7 @@ logo_img_file_name = config.get("pdf", "logo")
 logo_file = str(Path(__file__).parent / "resources" / logo_img_file_name)
 
 
-# this will define the ELEMENTS that will compose the template.
+# this will define the ELEMENTS that will compose the templates.
 elements = [
     {
         "name": "letterhead_logo",

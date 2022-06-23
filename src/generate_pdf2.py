@@ -2,12 +2,14 @@ import configparser
 import time
 from pathlib import Path
 
-from fpdf import FPDF
+from fpdf import FPDF, HTMLMixin
+from jinja2 import FileSystemLoader, Environment
+
+from data import dummy_data
 
 
-class PDF(FPDF):
+class PDF(FPDF, HTMLMixin):
     def header(self):
-
         config_file = Path(__file__).parent.parent / "ayuh.ini"
         config = configparser.ConfigParser()
         config.read(config_file)
@@ -56,20 +58,29 @@ class PDF(FPDF):
         self.line(x1=0, y1=26, x2=210, y2=26)
 
     def footer(self):
-        pass
+        self.set_y(-15)
+        self.set_font("Helvetica", "I", 6)
+        self.cell(0, 10, f"Page {self.page_no()}/{{nb}}", align="C")
 
 
-def create_pdf(patient_id):
-    pdf_name = f"{patient_id}_{time.time()}.pdf"
+def create_pdf(id, items):
+    template_dir = Path(__file__).parent / 'templates'
+    file_loader = FileSystemLoader(str(template_dir))
+    env = Environment(loader=file_loader, autoescape=True)
+
+    pdf_name = f"{id}_{time.time()}.pdf"
     pdf_path = Path(__file__).parent.parent / "bills" / pdf_name
     pdf = PDF()
     pdf.add_page()
-    pdf.set_font("Times", size=10)
+    pdf.set_font("Times", size=8)
+
+    invoice_items_html = env.get_template(f'invoice_template.html')
+    pdf.write_html(invoice_items_html.render(invoice_items=items), table_line_separators=False)
+
     pdf.output(pdf_path)
 
 
 if __name__ == "__main__":
-
-    patient_id = "xyz123"
-
-    create_pdf(patient_id)
+    patient_id = "lmn123"
+    invoice_items = dummy_data
+    create_pdf(id=patient_id, items=invoice_items)
