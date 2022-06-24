@@ -1,180 +1,112 @@
 import configparser
-from pathlib import Path
 import time
+from datetime import date, datetime
+from pathlib import Path
 
-from fpdf import FPDF, FlexTemplate
-from fpdf.enums import XPos, YPos
+from fpdf import FPDF, HTMLMixin
+from jinja2 import FileSystemLoader, Environment
 
-# read invoice headers, footers from config file
-config_file = Path(__file__).parent.parent / "ayuh.ini"
-config = configparser.ConfigParser()
-config.read(config_file)
-
-letterhead_name = config.get("pdf", "letterhead_name")
-letterhead_motto = config.get("pdf", "letterhead_motto")
-letterhead_addr_line1 = config.get("pdf", "letterhead_addr_line1")
-letterhead_addr_line2 = config.get("pdf", "letterhead_addr_line2")
-letterhead_contact1 = config.get("pdf", "letterhead_contact1")
-letterhead_contact2 = config.get("pdf", "letterhead_contact2")
-
-logo_img_file_name = config.get("pdf", "logo")
-logo_file = str(Path(__file__).parent / "resources" / logo_img_file_name)
+from data import dummy_data
 
 
-# this will define the ELEMENTS that will compose the templates.
-elements = [
-    {
-        "name": "letterhead_logo",
-        "type": "I",
-        "x1": 10.0,
-        "y1": 10.0,
-        "x2": 25.0,
-        "y2": 25.0,
-        "font": "courier",
-        "size": 0.0,
-    },
-    {
-        "name": "letterhead_name",
-        "type": "T",
-        "x1": 50.0,
-        "y1": 10.0,
-        "x2": 150.0,
-        "y2": 10.0,
-        "font": "times",
-        "size": 13.0,
-    },
-    {
-        "name": "letterhead_motto",
-        "type": "T",
-        "x1": 50.0,
-        "y1": 15.0,
-        "x2": 100.0,
-        "y2": 15.0,
-        "font": "times",
-        "italic": 1,
-        "size": 9.0,
-    },
-    {
-        "name": "letterhead_addr_line1",
-        "type": "T",
-        "x1": 140.0,
-        "y1": 15.0,
-        "x2": 140.0,
-        "y2": 15.0,
-        "font": "times",
-        "size": 8.0,
-    },
-    {
-        "name": "letterhead_addr_line2",
-        "type": "T",
-        "x1": 140.0,
-        "y1": 18.0,
-        "x2": 140.0,
-        "y2": 18.0,
-        "font": "times",
-        "size": 8.0,
-    },
-    {
-        "name": "letterhead_contact1",
-        "type": "T",
-        "x1": 140.0,
-        "y1": 21.0,
-        "x2": 140.0,
-        "y2": 21.0,
-        "font": "times",
-        "size": 8.0,
-    },
-    {
-        "name": "letterhead_contact2",
-        "type": "T",
-        "x1": 140.0,
-        "y1": 24.0,
-        "x2": 140.0,
-        "y2": 24.0,
-        "font": "times",
-        "size": 8.0,
-    },
-    {
-        "name": "letterhead_line",
-        "type": "L",
-        "x1": 10.0,
-        "y1": 26.0,
-        "x2": 180.0,
-        "y2": 26.0,
-        "priority": 3,
-        "font": "times",
-        "size": 0.75,
-    },
-]
+class PDF(FPDF, HTMLMixin):
+    def header(self):
+        config_file = Path(__file__).parent.parent / "ayuh.ini"
+        config = configparser.ConfigParser()
+        config.read(config_file)
+
+        letterhead_name = config.get("pdf", "letterhead_name")
+        letterhead_motto = config.get("pdf", "letterhead_motto")
+        letterhead_addr_line1 = config.get("pdf", "letterhead_addr_line1")
+        letterhead_addr_line2 = config.get("pdf", "letterhead_addr_line2")
+        letterhead_contact1 = config.get("pdf", "letterhead_contact1")
+        letterhead_contact2 = config.get("pdf", "letterhead_contact2")
+        logo_img_file_name = config.get("pdf", "logo")
+
+        logo_file = str(Path(__file__).parent / "resources" / logo_img_file_name)
+
+        # mandatory line of code
+        self.set_font(family="Helvetica", style="B", size=11)
+
+        # logo
+        self.image(name=logo_file, x=10, y=10, w=15)
+
+        # title
+        title_width = self.get_string_width(letterhead_name) + 6
+        self.set_x((210 - title_width) / 2)
+        self.cell(w=title_width, h=4, txt=letterhead_name, border=0, new_y="NEXT", align="C")
+
+        # motto
+        self.set_font(family="Helvetica", size=9)
+        self.set_x((210 - title_width) / 2)
+        self.cell(w=title_width, h=4, txt=letterhead_motto, border=0, align="C")
+
+        # contact
+        self.set_font(family="Helvetica", size=6)
+        self.set_y(10)
+        self.set_x(170)
+        self.cell(w=40, h=4, txt=letterhead_addr_line1, border=0, new_y="NEXT", align="R")
+        self.set_x(170)
+        self.cell(w=40, h=4, txt=letterhead_addr_line2, border=0, new_y="NEXT", align="R")
+        self.set_x(170)
+        self.cell(w=40, h=4, txt=letterhead_contact1, border=0, new_y="NEXT", align="R")
+        self.set_x(170)
+        self.cell(w=40, h=4, txt=letterhead_contact2, border=0, new_y="NEXT", align="R")
+
+        # line
+        self.set_line_width(0.2)
+        self.set_draw_color(r=255, g=128, b=0)
+        self.line(x1=0, y1=26, x2=210, y2=26)
+
+    def footer(self):
+        self.set_y(-15)
+        self.set_font("Helvetica", "I", 6)
+        self.cell(0, 10, f"Page {self.page_no()}/{{nb}}", align="C")
 
 
-def generate_pdf(patient_id, medication_info):
+def create_pdf(patient, items):
+    current_time = datetime.now()
+    patient_name = f"{patient['patient_last_name']}, {patient['patient_first_name']}"
+    invoice_number = f"{patient['patient_first_name'][0].upper()}" \
+                     f"{patient['patient_first_name'][-1].upper()}" \
+                     f"{patient['patient_last_name'][0].upper()}" \
+                     f"{patient['patient_last_name'][-1].upper()}" \
+                     f"{patient['consultation_date'].replace('-', '')}" \
+                     f"-{current_time.strftime('%H%M%S')}"
 
-    pdf_name = f"{patient_id}_{time.time()}.pdf"
+    template_dir = Path(__file__).parent / 'templates'
+    file_loader = FileSystemLoader(str(template_dir))
+    env = Environment(loader=file_loader, autoescape=True)
+
+    pdf_name = f"{patient['id']}_{time.time()}.pdf"
     pdf_path = Path(__file__).parent.parent / "bills" / pdf_name
-
-    pdf = FPDF(format="A4", orientation="P")
+    pdf = PDF()
     pdf.add_page()
+    pdf.set_font("Courier", size=8)
 
-    template = FlexTemplate(pdf, elements=elements)
+    invoice_items_html_template = env.get_template(f'invoice_template.html')
+    invoice_items_html = invoice_items_html_template.render(patient_name=patient_name,
+                                                            invoice_number=invoice_number,
+                                                            invoice_date=patient['consultation_date'],
+                                                            due_date=patient['due_date'],
+                                                            terms=patient['terms'],
+                                                            invoice_items=items)
+    pdf.write_html(invoice_items_html, table_line_separators=False)
 
-    template["letterhead_logo"] = logo_file
-    template["letterhead_name"] = letterhead_name
-    template["letterhead_motto"] = letterhead_motto
-    template["letterhead_addr_line1"] = letterhead_addr_line1
-    template["letterhead_addr_line2"] = letterhead_addr_line2
-    template["letterhead_contact1"] = letterhead_contact1
-    template["letterhead_contact2"] = letterhead_contact2
-
-    template.render()
-
-    pdf.set_y(28)
-    pdf.set_font("courier", size=10.0)
-
-    line_height = pdf.font_size
-
-    # header
-    header = f"{'Item':<62} {'Rate':<7} {'Qty':<7} {'Total':<7}"
-    pdf.cell(30, line_height, header, 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-    dashed_line = f"{'----':<62} {'----':<7} {'---':<7} {'-----':<7}"
-    pdf.cell(30, line_height, dashed_line, 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-
-    total = 0
-    for medication_item in medication_info:
-        cost_per_lineitem = medication_item[1] * medication_item[2]
-        total += cost_per_lineitem
-        line_item = (
-            f"{medication_item[0]:<62}|{medication_item[1]:<7}| {medication_item[2]:<7}| {cost_per_lineitem:<7.2f}"
-        )
-        pdf.cell(30, line_height, line_item, 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-        pdf.ln(line_height)
-
-    # total
-    pdf.set_font("courier", "B", size=10.0)
-    pdf.set_text_color(128, 101, 115)
-    pdf.ln(line_height)
-    total_line = f"{'Total':<62} {' ':<7}  {' ':<7}  {total:<7.2f}"
-    pdf.cell(30, line_height, total_line, 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
     pdf.output(pdf_path)
 
 
 if __name__ == "__main__":
-    patient_id = "abc101"
-    medication_info = (
-        (
-            "Amruthaarishtam",
-            10.00,
-            1,
-        ),
-        (
-            "Ashtachoornam",
-            11.45,
-            3,
-        ),
-        (
-            "Abhayaarishtam",
-            9.80,
-            2,
-        ),
-    )
-    generate_pdf(patient_id=patient_id, medication_info=medication_info)
+    current_date = date.today()
+
+    patient_record = {
+        'id': 'zyx321',
+        'patient_first_name': 'Smith',
+        'patient_last_name': 'Zacharias',
+        'consultation_date': current_date.strftime("%Y-%m-%d"),
+        'due_date': current_date.strftime("%Y-%m-%d"),
+        'terms': 'NET 30'
+    }
+
+    invoice_items = dummy_data
+    create_pdf(patient=patient_record, items=invoice_items)

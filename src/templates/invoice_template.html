@@ -1,7 +1,31 @@
+<h6><font color="#79a1e0">TAX INVOICE</font></h6>
+<table>
+    <tr>
+        <td align="left" width="30%">INVOICE TO</td>
+        <td align="left" width="70%">{{ patient_name }}</td>
+    </tr>
+    <tr>
+        <td align="left" width="30%">INVOICE #</td>
+        <td align="left" width="70%">{{ invoice_number }}</td>
+    </tr>
+    <tr>
+        <td align="left" width="30%">INVOICE DATE</td>
+        <td align="left" width="70%">{{ invoice_date }}</td>
+    </tr>
+    <tr>
+        <td align="left" width="30%">DUE DATE</td>
+        <td align="left" width="70%">{{ due_date }}</td>
+    </tr>
+    <tr>
+        <td align="left" width="30%">TERMS</td>
+        <td align="left" width="70%">{{ terms }}</td>
+    </tr>
+</table>
+<br/>
 <table border="0">
     <thead>
     <tr>
-        <th align="left" width="5%">Sl.No.</th>
+        <th align="left" width="5%">#</th>
         <th align="left" width="30%">Item</th>
         <th align="left" width="35%">Description</th>
         <th align="left" width="5%">GST</th>
