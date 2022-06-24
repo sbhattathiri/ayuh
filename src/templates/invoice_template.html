@@ -21,14 +21,14 @@
         <td align="left" width="70%">{{ terms }}</td>
     </tr>
 </table>
-<br/>
+<h6><font color="#79a1e0">BILLING INFO</font></h6>
 <table border="0">
     <thead>
     <tr>
         <th align="left" width="5%">#</th>
         <th align="left" width="30%">Item</th>
-        <th align="left" width="35%">Description</th>
-        <th align="left" width="5%">GST</th>
+        <th align="left" width="25%">Description</th>
+        <th align="left" width="15%">GST</th>
         <th align="left" width="10%">Rate</th>
         <th align="left" width="5%">Qty</th>
         <th align="left" width="10%">Amount</th>
@@ -39,8 +39,8 @@
     <tr>
         <td width="5%">{{ invoice_item['id'] }}</td>
         <td width="30%">{{ invoice_item['item'] }}</td>
-        <td width="35%">{{ invoice_item['description'] }}</td>
-        <td width="5%">{{ invoice_item['gst'] }}</td>
+        <td width="25%">{{ invoice_item['description'] }}</td>
+        <td width="15%">{{ invoice_item['gst'] }}</td>
         <td width="10%">{{ invoice_item['rate'] }}</td>
         <td width="5%">{{ invoice_item['qty'] }}</td>
         <td width="10%">{{ '%0.2f' |format(invoice_item['rate'] * invoice_item['qty']|float) }}</td>
@@ -48,3 +48,41 @@
     {% endfor %}
     </tbody>
 </table>
+<h6><font color="#79a1e0">PAYMENT DETAILS</font></h6>
+<table>
+    <tr>
+        <td align="left" width="30%">TOTAL</td>
+        <td align="left" width="70%">{{ total }}</td>
+    </tr>
+    <tr>
+        <td align="left" width="30%">GST</td>
+        <td align="left" width="70%">{{ gst }}</td>
+    </tr>
+    <tr>
+        <td align="left" width="30%">TOTAL (incl. GST)</td>
+        <td align="left" width="70%">{{ total + gst }}</td>
+    </tr>
+    <tr>
+        <td align="left" width="30%">PAYMENT METHOD</td>
+        <td align="left" width="70%">{{ payment_method }}</td>
+    </tr>
+    <tr>
+        <td align="left" width="30%">AMOUNT PAID</td>
+        <td align="left" width="70%">{{ payment_paid }}</td>
+    </tr>
+    <tr>
+        <td align="left" width="30%">BALANCE DUE</td>
+        <td align="left" width="70%">{{ '%0.2f' | format((total + gst - payment_paid)|float) }}</td>
+    </tr>
+    <tr>
+        <td align="left" width="30%">PAYMENT BANK</td>
+        <td align="left" width="70%">{{ payment_bank }}</td>
+    </tr>
+    <tr>
+        <td align="left" width="30%">PAYMENT ACCOUNT</td>
+        <td align="left" width="70%">{{ payment_account }}</td>
+    </tr>
+</table>
+{% if (total + gst - payment_paid) <= 0.00 %}
+<h3><font color="green">PAID</font></h3>
+{% endif %}

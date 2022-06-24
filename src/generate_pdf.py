@@ -8,20 +8,20 @@ from jinja2 import FileSystemLoader, Environment
 
 from data import dummy_data
 
+config_file = Path(__file__).parent.parent / "ayuh.ini"
+config = configparser.ConfigParser()
+config.read(config_file)
+
 
 class PDF(FPDF, HTMLMixin):
     def header(self):
-        config_file = Path(__file__).parent.parent / "ayuh.ini"
-        config = configparser.ConfigParser()
-        config.read(config_file)
-
-        letterhead_name = config.get("pdf", "letterhead_name")
-        letterhead_motto = config.get("pdf", "letterhead_motto")
-        letterhead_addr_line1 = config.get("pdf", "letterhead_addr_line1")
-        letterhead_addr_line2 = config.get("pdf", "letterhead_addr_line2")
-        letterhead_contact1 = config.get("pdf", "letterhead_contact1")
-        letterhead_contact2 = config.get("pdf", "letterhead_contact2")
-        logo_img_file_name = config.get("pdf", "logo")
+        letterhead_name = config.get("header", "letterhead_name")
+        letterhead_motto = config.get("header", "letterhead_motto")
+        letterhead_addr_line1 = config.get("header", "letterhead_addr_line1")
+        letterhead_addr_line2 = config.get("header", "letterhead_addr_line2")
+        letterhead_contact1 = config.get("header", "letterhead_contact1")
+        letterhead_contact2 = config.get("header", "letterhead_contact2")
+        logo_img_file_name = config.get("header", "logo")
 
         logo_file = str(Path(__file__).parent / "resources" / logo_img_file_name)
 
@@ -64,7 +64,21 @@ class PDF(FPDF, HTMLMixin):
         self.cell(0, 10, f"Page {self.page_no()}/{{nb}}", align="C")
 
 
-def create_pdf(patient, items):
+def calculate_gst(items):
+    gst_total = 0
+    total = 0
+    for item in items:
+        item_gst_rate = item['gst'] / 100
+        item_total = round((item['rate']) * item['qty'], 2)
+        total += item_total
+
+        item_gst = round(item_gst_rate * item_total, 2)
+        gst_total += item_gst
+
+    return gst_total, round(total, 2)
+
+
+def create_pdf(patient, items, payment):
     current_time = datetime.now()
     patient_name = f"{patient['patient_last_name']}, {patient['patient_first_name']}"
     invoice_number = f"{patient['patient_first_name'][0].upper()}" \
@@ -73,6 +87,11 @@ def create_pdf(patient, items):
                      f"{patient['patient_last_name'][-1].upper()}" \
                      f"{patient['consultation_date'].replace('-', '')}" \
                      f"-{current_time.strftime('%H%M%S')}"
+
+    bank = config.get("bank", "bank_address")
+    account = config.get("bank", "bank_account")
+
+    gst, total = calculate_gst(items)
 
     template_dir = Path(__file__).parent / 'templates'
     file_loader = FileSystemLoader(str(template_dir))
@@ -90,7 +109,13 @@ def create_pdf(patient, items):
                                                             invoice_date=patient['consultation_date'],
                                                             due_date=patient['due_date'],
                                                             terms=patient['terms'],
-                                                            invoice_items=items)
+                                                            invoice_items=items,
+                                                            total=total,
+                                                            gst=gst,
+                                                            payment_method=payment['payment_method'],
+                                                            payment_paid=payment['paid'],
+                                                            payment_bank=bank,
+                                                            payment_account=account)
     pdf.write_html(invoice_items_html, table_line_separators=False)
 
     pdf.output(pdf_path)
@@ -109,4 +134,9 @@ if __name__ == "__main__":
     }
 
     invoice_items = dummy_data
-    create_pdf(patient=patient_record, items=invoice_items)
+
+    payment = {
+        'payment_method': 'CARD',
+        'paid': 1032.00
+    }
+    create_pdf(patient=patient_record, items=invoice_items, payment=payment)
