@@ -7,6 +7,8 @@ from fpdf import FPDF, HTMLMixin
 from jinja2 import FileSystemLoader, Environment
 
 from data import dummy_data
+from src.config import LETTERHEAD_CONTACT2, LETTERHEAD_CONTACT1, LETTERHEAD_ADDR_LINE2, LETTERHEAD_ADDR_LINE1, \
+    LETTERHEAD_MOTTO, LETTERHEAD_NAME, LETTERHEAD_LOGO_IMAGE, PAYMENT_BANK, PAYMENT_ACCOUNT
 
 config_file = Path(__file__).parent.parent / "ayuh.ini"
 config = configparser.ConfigParser()
@@ -15,15 +17,8 @@ config.read(config_file)
 
 class PDF(FPDF, HTMLMixin):
     def header(self):
-        letterhead_name = config.get("header", "letterhead_name")
-        letterhead_motto = config.get("header", "letterhead_motto")
-        letterhead_addr_line1 = config.get("header", "letterhead_addr_line1")
-        letterhead_addr_line2 = config.get("header", "letterhead_addr_line2")
-        letterhead_contact1 = config.get("header", "letterhead_contact1")
-        letterhead_contact2 = config.get("header", "letterhead_contact2")
-        logo_img_file_name = config.get("header", "logo")
 
-        logo_file = str(Path(__file__).parent / "resources" / logo_img_file_name)
+        logo_file = str(Path(__file__).parent / "resources" / LETTERHEAD_LOGO_IMAGE)
 
         # mandatory line of code
         self.set_font(family="Helvetica", style="B", size=11)
@@ -32,26 +27,26 @@ class PDF(FPDF, HTMLMixin):
         self.image(name=logo_file, x=10, y=10, w=15)
 
         # title
-        title_width = self.get_string_width(letterhead_name) + 6
+        title_width = self.get_string_width(LETTERHEAD_NAME) + 6
         self.set_x((210 - title_width) / 2)
-        self.cell(w=title_width, h=4, txt=letterhead_name, border=0, new_y="NEXT", align="C")
+        self.cell(w=title_width, h=4, txt=LETTERHEAD_NAME, border=0, new_y="NEXT", align="C")
 
         # motto
         self.set_font(family="Helvetica", size=9)
         self.set_x((210 - title_width) / 2)
-        self.cell(w=title_width, h=4, txt=letterhead_motto, border=0, align="C")
+        self.cell(w=title_width, h=4, txt=LETTERHEAD_MOTTO, border=0, align="C")
 
         # contact
         self.set_font(family="Helvetica", size=6)
         self.set_y(10)
         self.set_x(170)
-        self.cell(w=40, h=4, txt=letterhead_addr_line1, border=0, new_y="NEXT", align="R")
+        self.cell(w=40, h=4, txt=LETTERHEAD_ADDR_LINE1, border=0, new_y="NEXT", align="R")
         self.set_x(170)
-        self.cell(w=40, h=4, txt=letterhead_addr_line2, border=0, new_y="NEXT", align="R")
+        self.cell(w=40, h=4, txt=LETTERHEAD_ADDR_LINE2, border=0, new_y="NEXT", align="R")
         self.set_x(170)
-        self.cell(w=40, h=4, txt=letterhead_contact1, border=0, new_y="NEXT", align="R")
+        self.cell(w=40, h=4, txt=LETTERHEAD_CONTACT1, border=0, new_y="NEXT", align="R")
         self.set_x(170)
-        self.cell(w=40, h=4, txt=letterhead_contact2, border=0, new_y="NEXT", align="R")
+        self.cell(w=40, h=4, txt=LETTERHEAD_CONTACT2, border=0, new_y="NEXT", align="R")
 
         # line
         self.set_line_width(0.2)
@@ -88,9 +83,6 @@ def create_pdf(patient, items, payment):
                      f"{patient['consultation_date'].replace('-', '')}" \
                      f"-{current_time.strftime('%H%M%S')}"
 
-    bank = config.get("bank", "bank_address")
-    account = config.get("bank", "bank_account")
-
     gst, total = calculate_gst(items)
 
     template_dir = Path(__file__).parent / 'templates'
@@ -114,8 +106,8 @@ def create_pdf(patient, items, payment):
                                                             gst=gst,
                                                             payment_method=payment['payment_method'],
                                                             payment_paid=payment['paid'],
-                                                            payment_bank=bank,
-                                                            payment_account=account)
+                                                            payment_bank=PAYMENT_BANK,
+                                                            payment_account=PAYMENT_ACCOUNT)
     pdf.write_html(invoice_items_html, table_line_separators=False)
 
     pdf.output(pdf_path)
