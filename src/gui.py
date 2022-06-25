@@ -3,7 +3,7 @@ from tkinter import *
 from src.config import LETTERHEAD_NAME, SOFTWARE_NAME, SOFTWARE_VERSION
 
 WIDTH = 1350
-HEIGHT = 700
+HEIGHT = 1350
 X_OFFSET = 0
 Y_OFFSET = 0
 
@@ -15,7 +15,7 @@ FOREGROUND = "black"
 LABEL_FONT = "Times"
 TEXT_FONT = "Courier"
 
-BILLING_ROWS = 20
+BILLING_ROWS = 15
 BILLING_COLUMNS = 6
 BILLING_COLUMN_NAMES_MAP = {
     0: '#',
@@ -113,13 +113,14 @@ class BillerGUI:
                                 relief=GROOVE)
         patient_id_text.grid(row=0, column=5, padx=10, pady=5)
 
+        # billing info
         billing_info_frame = LabelFrame(self.root,
                                         text="Billing Details",
                                         font=(LABEL_FONT, 10, 'bold'),
                                         bd=1,
                                         bg=BACKGROUND,
                                         fg=FOREGROUND)
-        billing_info_frame.place(x=0, y=150, width=1350, relwidth=0.5)
+        billing_info_frame.place(x=0, y=125, width=1350, relwidth=0.5)
 
         for row in range(BILLING_ROWS):
             for column in range(BILLING_COLUMNS):
@@ -147,6 +148,158 @@ class BillerGUI:
                 else:
                     self.billing_item.grid(row=row, column=column, padx=0)
 
+        # payment info
+        self.total_excl_gst = StringVar()
+        self.gst = StringVar()
+        self.total_incl_gst = StringVar()
+        self.payment_due_date = StringVar()
+        self.payment_option_menu = StringVar()
+        self.payment_paid = StringVar()
+
+        payment_info_frame = LabelFrame(self.root,
+                                        text="Payment Details",
+                                        font=(LABEL_FONT, 10, 'bold'),
+                                        bd=1,
+                                        bg=BACKGROUND,
+                                        fg=FOREGROUND)
+        payment_info_frame.place(x=0, y=515, width=1350, relwidth=0.5)
+
+        payment_total_excl_gst_label = Label(payment_info_frame,
+                                             width=20,
+                                             text="Total",
+                                             font=(LABEL_FONT, 10, 'normal'),
+                                             anchor="e",
+                                             justify=LEFT,
+                                             bg=BACKGROUND)
+        payment_total_excl_gst_label.grid(row=0, column=0, padx=20, pady=5)
+
+        payment_total_excl_gst_text = Entry(payment_info_frame,
+                                            width=20,
+                                            textvariable=self.total_excl_gst,
+                                            font=(TEXT_FONT, 10, 'normal'),
+                                            bd=1,
+                                            relief=GROOVE)
+        payment_total_excl_gst_text.grid(row=0, column=1, padx=10, pady=5)
+
+        payment_gst_label = Label(payment_info_frame,
+                                  width=20,
+                                  text="GST",
+                                  font=(LABEL_FONT, 10, 'normal'),
+                                  anchor="e",
+                                  justify=LEFT,
+                                  bg=BACKGROUND)
+        payment_gst_label.grid(row=1, column=0, padx=20, pady=5)
+
+        payment_gst_text = Entry(payment_info_frame,
+                                 width=20,
+                                 textvariable=self.gst,
+                                 font=(TEXT_FONT, 10, 'normal'),
+                                 bd=1,
+                                 relief=GROOVE)
+        payment_gst_text.grid(row=1, column=1, padx=10, pady=5)
+
+        payment_total_incl_gst_label = Label(payment_info_frame,
+                                             width=20,
+                                             text="Total (incl. GST)",
+                                             font=(LABEL_FONT, 10, 'normal'),
+                                             anchor="e",
+                                             justify=LEFT,
+                                             bg=BACKGROUND)
+        payment_total_incl_gst_label.grid(row=2, column=0, padx=20, pady=5)
+
+        payment_total_incl_gst_text = Entry(payment_info_frame,
+                                            width=20,
+                                            textvariable=self.total_incl_gst,
+                                            font=(TEXT_FONT, 10, 'normal'),
+                                            bd=1,
+                                            relief=GROOVE)
+        payment_total_incl_gst_text.grid(row=2, column=1, padx=10, pady=5)
+
+        payment_due_date_label = Label(payment_info_frame,
+                                       width=20,
+                                       text="Payment Due Date",
+                                       font=(LABEL_FONT, 10, 'normal'),
+                                       anchor="e",
+                                       justify=LEFT,
+                                       bg=BACKGROUND)
+        payment_due_date_label.grid(row=3, column=0, padx=20, pady=5)
+
+        payment_due_date_text = Entry(payment_info_frame,
+                                      width=20,
+                                      textvariable=self.payment_due_date,
+                                      font=(TEXT_FONT, 10, 'normal'),
+                                      bd=1,
+                                      relief=GROOVE)
+        payment_due_date_text.grid(row=3, column=1, padx=10, pady=5)
+
+        payment_option_label = Label(payment_info_frame,
+                                     width=20,
+                                     text="Payment Option",
+                                     font=(LABEL_FONT, 10, 'normal'),
+                                     anchor="e",
+                                     justify=LEFT,
+                                     bg=BACKGROUND)
+        payment_option_label.grid(row=4, column=0, padx=20, pady=5)
+
+        self.payment_option_menu.set("CARD")
+        payment_options = OptionMenu(payment_info_frame, self.payment_option_menu, "CARD", "CASH", "e-BANKING")
+        payment_options.config(width=15)
+        payment_options.config(relief=FLAT)
+        payment_options.grid(row=4, column=1, padx=10, pady=5)
+
+        payment_paid_label = Label(payment_info_frame,
+                                   width=20,
+                                   text="Paid",
+                                   font=(LABEL_FONT, 10, 'normal'),
+                                   anchor="e",
+                                   justify=LEFT,
+                                   bg=BACKGROUND)
+        payment_paid_label.grid(row=5, column=0, padx=20, pady=5)
+
+        payment_paid_text = Entry(payment_info_frame,
+                                  width=20,
+                                  textvariable=self.payment_paid,
+                                  font=(TEXT_FONT, 10, 'normal'),
+                                  bd=1,
+                                  relief=GROOVE)
+        payment_paid_text.grid(row=5, column=1, padx=10, pady=5)
+
+        button_frame = LabelFrame(self.root,
+                                  text="Print Invoice",
+                                  font=(LABEL_FONT, 10, 'bold'),
+                                  bd=1,
+                                  bg=BACKGROUND,
+                                  fg=FOREGROUND)
+        button_frame.place(x=0, y=750, width=1350, relwidth=0.5)
+
+        # button
+        calculate_total = Button(button_frame,
+                                 command=self.total,
+                                 width=12,
+                                 text="TOTAL",
+                                 bd=2,
+                                 bg="#535C68",
+                                 fg="white",
+                                 pady=15,
+                                 font=(LABEL_FONT, 10, 'bold'))
+        calculate_total.grid(row=0, column=0, padx=5, pady=5)
+
+        generate_invoice = Button(button_frame,
+                                  command=self.generate_pdf,
+                                  width=12,
+                                  text="INVOICE",
+                                  bd=2,
+                                  bg="#535C68",
+                                  fg="white",
+                                  pady=15,
+                                  font=(LABEL_FONT, 10, 'bold'))
+        generate_invoice.grid(row=0, column=1, padx=5, pady=5)
+
+    def total(self):
+        pass
+
+    def generate_pdf(self):
+        pass
 
 if __name__ == '__main__':
     root = Tk()
