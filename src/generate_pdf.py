@@ -22,22 +22,27 @@ class PDF(FPDF, HTMLMixin):
 
         # mandatory line of code
         self.set_font(family="Helvetica", style="B", size=11)
+        self.set_text_color(124, 75, 49)
 
         # logo
-        self.image(name=logo_file, x=10, y=10, w=20)
+        self.image(name=logo_file, x=10, y=5, w=25)
 
         # title
         title_width = self.get_string_width(LETTERHEAD_NAME) + 6
         self.set_x((210 - title_width) / 2)
+        self.cell(w=title_width, h=2, txt='', border=0, new_y="NEXT", align="C")
+        self.set_x((210 - title_width) / 2)
         self.cell(w=title_width, h=4, txt=LETTERHEAD_NAME, border=0, new_y="NEXT", align="C")
 
         # motto
-        self.set_font(family="Helvetica", size=9)
+        self.set_font("Helvetica", "I", 7)
+        self.set_text_color(209, 192, 183)
         self.set_x((210 - title_width) / 2)
         self.cell(w=title_width, h=4, txt=LETTERHEAD_MOTTO, border=0, align="C")
 
         # contact
         self.set_font(family="Helvetica", size=6)
+        self.set_text_color(0, 0, 0)
         self.set_y(10)
         self.set_x(170)
         self.cell(w=40, h=4, txt=LETTERHEAD_ADDR_LINE1, border=0, new_y="NEXT", align="R")
@@ -51,7 +56,7 @@ class PDF(FPDF, HTMLMixin):
         # line
         self.set_line_width(0.2)
         self.set_draw_color(r=255, g=128, b=0)
-        self.line(x1=0, y1=26, x2=210, y2=26)
+        self.line(x1=0, y1=25, x2=210, y2=25)
 
     def footer(self):
         self.set_y(-15)
