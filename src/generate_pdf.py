@@ -24,7 +24,7 @@ class PDF(FPDF, HTMLMixin):
         self.set_font(family="Helvetica", style="B", size=11)
 
         # logo
-        self.image(name=logo_file, x=10, y=10, w=15)
+        self.image(name=logo_file, x=10, y=10, w=20)
 
         # title
         title_width = self.get_string_width(LETTERHEAD_NAME) + 6
