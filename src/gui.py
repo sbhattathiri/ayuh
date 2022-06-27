@@ -1,4 +1,5 @@
 from tkinter import *
+from tkinter import messagebox
 
 from src.config import LETTERHEAD_NAME, SOFTWARE_NAME, SOFTWARE_VERSION
 
@@ -114,6 +115,9 @@ class BillerGUI:
         patient_id_text.grid(row=0, column=5, padx=10, pady=5)
 
         # billing info
+        self.billed_items = []
+        self.billed_items_info = None
+
         billing_info_frame = LabelFrame(self.root,
                                         text="Billing Details",
                                         font=(LABEL_FONT, 10, 'bold'),
@@ -126,27 +130,49 @@ class BillerGUI:
             for column in range(BILLING_COLUMNS):
                 if row == 0:
                     header_text = StringVar()
-                    self.billing_item = Entry(billing_info_frame,
-                                              width=BILLING_COLUMNS_WIDTH_MAP[column],
-                                              font=(TEXT_FONT, 10, 'normal'),
-                                              bd=1,
-                                              relief=SUNKEN,
-                                              state="readonly",
-                                              textvariable=header_text
-                                              )
+                    billing_item = Entry(billing_info_frame,
+                                         width=BILLING_COLUMNS_WIDTH_MAP[column],
+                                         font=(TEXT_FONT, 10, 'normal'),
+                                         bd=1,
+                                         relief=SUNKEN,
+                                         state="readonly",
+                                         textvariable=header_text
+                                         )
                     header_text.set(BILLING_COLUMN_NAMES_MAP[column])
 
                 else:
-                    self.billing_item = Entry(billing_info_frame,
-                                              width=BILLING_COLUMNS_WIDTH_MAP[column],
-                                              font=(TEXT_FONT, 10, 'normal'),
-                                              bd=1,
-                                              relief=SUNKEN
-                                              )
+                    billing_item = Entry(billing_info_frame,
+                                         width=BILLING_COLUMNS_WIDTH_MAP[column],
+                                         font=(TEXT_FONT, 10, 'normal'),
+                                         bd=1,
+                                         relief=SUNKEN
+                                         )
                 if column == 0:
-                    self.billing_item.grid(row=row, column=column, padx=(20, 0))
+                    billing_item.grid(row=row, column=column, padx=(20, 0))
                 else:
-                    self.billing_item.grid(row=row, column=column, padx=0)
+                    billing_item.grid(row=row, column=column, padx=0)
+
+                self.billed_items.append(billing_item)
+
+        # total button frame
+        total_button_frame = LabelFrame(self.root,
+                                        text="Total",
+                                        font=(LABEL_FONT, 10, 'bold'),
+                                        bd=1,
+                                        bg=BACKGROUND,
+                                        fg=FOREGROUND)
+        total_button_frame.place(x=0, y=515, width=1350, relwidth=0.5)
+
+        calculate_total = Button(total_button_frame,
+                                 command=self.total,
+                                 width=12,
+                                 text="TOTAL",
+                                 bd=2,
+                                 bg="#535C68",
+                                 fg="white",
+                                 pady=10,
+                                 font=(LABEL_FONT, 10, 'bold'))
+        calculate_total.grid(row=0, column=0, padx=5, pady=5)
 
         # payment info
         self.total_excl_gst = StringVar()
@@ -162,7 +188,7 @@ class BillerGUI:
                                         bd=1,
                                         bg=BACKGROUND,
                                         fg=FOREGROUND)
-        payment_info_frame.place(x=0, y=515, width=1350, relwidth=0.5)
+        payment_info_frame.place(x=0, y=580, width=1350, relwidth=0.5)
 
         payment_total_excl_gst_label = Label(payment_info_frame,
                                              width=20,
@@ -178,6 +204,7 @@ class BillerGUI:
                                             textvariable=self.total_excl_gst,
                                             font=(TEXT_FONT, 10, 'normal'),
                                             bd=1,
+                                            state="readonly",
                                             relief=GROOVE)
         payment_total_excl_gst_text.grid(row=0, column=1, padx=10, pady=5)
 
@@ -195,6 +222,7 @@ class BillerGUI:
                                  textvariable=self.gst,
                                  font=(TEXT_FONT, 10, 'normal'),
                                  bd=1,
+                                 state="readonly",
                                  relief=GROOVE)
         payment_gst_text.grid(row=1, column=1, padx=10, pady=5)
 
@@ -212,6 +240,7 @@ class BillerGUI:
                                             textvariable=self.total_incl_gst,
                                             font=(TEXT_FONT, 10, 'normal'),
                                             bd=1,
+                                            state="readonly",
                                             relief=GROOVE)
         payment_total_incl_gst_text.grid(row=2, column=1, padx=10, pady=5)
 
@@ -264,42 +293,83 @@ class BillerGUI:
                                   relief=GROOVE)
         payment_paid_text.grid(row=5, column=1, padx=10, pady=5)
 
-        button_frame = LabelFrame(self.root,
-                                  text="Print Invoice",
-                                  font=(LABEL_FONT, 10, 'bold'),
-                                  bd=1,
-                                  bg=BACKGROUND,
-                                  fg=FOREGROUND)
-        button_frame.place(x=0, y=750, width=1350, relwidth=0.5)
+        # invoice button frame
+        self.invoice_details_message = StringVar()
+        self.invoice_details_message.set("Invoice generated. File: {}")
 
-        # button
-        calculate_total = Button(button_frame,
-                                 command=self.total,
-                                 width=12,
-                                 text="TOTAL",
-                                 bd=2,
-                                 bg="#535C68",
-                                 fg="white",
-                                 pady=15,
-                                 font=(LABEL_FONT, 10, 'bold'))
-        calculate_total.grid(row=0, column=0, padx=5, pady=5)
+        invoice_button_frame = LabelFrame(self.root,
+                                          text="Print Invoice",
+                                          font=(LABEL_FONT, 10, 'bold'),
+                                          bd=1,
+                                          bg=BACKGROUND,
+                                          fg=FOREGROUND)
+        invoice_button_frame.place(x=0, y=820, width=1350, relwidth=0.5)
 
-        generate_invoice = Button(button_frame,
+        generate_invoice = Button(invoice_button_frame,
                                   command=self.generate_pdf,
                                   width=12,
                                   text="INVOICE",
                                   bd=2,
                                   bg="#535C68",
                                   fg="white",
-                                  pady=15,
+                                  pady=10,
                                   font=(LABEL_FONT, 10, 'bold'))
         generate_invoice.grid(row=0, column=1, padx=5, pady=5)
 
     def total(self):
-        pass
+        BILLING_COLUMN_INDEX_MAP = dict([(value, key) for key, value in BILLING_COLUMN_NAMES_MAP.items()])
+
+        RATE_INDEX = BILLING_COLUMN_INDEX_MAP['Rate']
+        QTY_INDEX = BILLING_COLUMN_INDEX_MAP['Qty.']
+        GST_INDEX = BILLING_COLUMN_INDEX_MAP['GST']
+
+        grand_total_excl_gst = 0
+        grand_total_gst = 0
+        grand_total_incl_gst = 0
+        for i in range(1, BILLING_ROWS):
+            if len(self.billed_items[i * BILLING_COLUMNS + 0].get()) > 0:
+                item_rate = float(self.billed_items[i * BILLING_COLUMNS + RATE_INDEX].get())
+                item_qty = int(self.billed_items[i * BILLING_COLUMNS + QTY_INDEX].get())
+                item_gst = float(self.billed_items[i * BILLING_COLUMNS + GST_INDEX].get()) / 100
+
+                total_excl_gst = round(item_rate * item_qty, 2)
+                gst = round(item_gst * total_excl_gst, 2)
+                total_incl_gst = round(total_excl_gst + gst, 2)
+
+                grand_total_excl_gst += total_excl_gst
+                grand_total_gst += gst
+                grand_total_incl_gst += total_incl_gst
+
+        # print(f"Grand Tot. excl. GST {grand_total_excl_gst}")
+        # print(f"Grand Tot. GST {grand_total_gst}")
+        # print(f"Grand Tot. incl. GST {grand_total_incl_gst}")
+        # print(f"Grand Tot. {grand_total_excl_gst + grand_total_gst}")
+
+        self.total_excl_gst.set(str(grand_total_excl_gst))
+        self.gst.set(str(grand_total_gst))
+        self.total_incl_gst.set(str(grand_total_incl_gst))
 
     def generate_pdf(self):
-        pass
+        BILLING_COLUMN_INDEX_MAP = dict([(value, key) for key, value in BILLING_COLUMN_NAMES_MAP.items()])
+
+        billed_items_info = []
+        for i in range(BILLING_ROWS):
+            item_info = []
+            for j in range(BILLING_COLUMNS):
+                info = self.billed_items[i * BILLING_COLUMNS + j].get()
+                item_info.append(info)
+            billed_items_info.append(item_info)
+
+        self.billed_items = billed_items_info
+
+        self.message_box("file_path")
+
+    def message_box(self, invoice_file_path):
+        res = messagebox.showinfo("Information", f"Invoice generated at : {invoice_file_path}")
+        print(res)
+        if res == 'ok':
+            self.root.destroy()
+
 
 if __name__ == '__main__':
     root = Tk()

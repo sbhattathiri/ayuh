@@ -115,6 +115,8 @@ def create_pdf(patient, items, payment):
 
     pdf.output(pdf_path)
 
+    return pdf_path
+
 
 if __name__ == "__main__":
     current_date = date.today()
