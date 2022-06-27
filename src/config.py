@@ -3,7 +3,7 @@ from pathlib import Path
 
 config_file = Path(__file__).parent.parent / "ayuh.ini"
 config = configparser.ConfigParser()
-config.read(config_file)
+config.read(config_file, 'UTF-8')
 
 LETTERHEAD_NAME = config.get("letterhead", "letterhead_name")
 LETTERHEAD_MOTTO = config.get("letterhead", "letterhead_motto")

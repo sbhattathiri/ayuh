@@ -1,4 +1,3 @@
-import configparser
 import time
 from datetime import date, datetime
 from pathlib import Path
@@ -10,22 +9,19 @@ from data import dummy_data
 from src.config import LETTERHEAD_CONTACT2, LETTERHEAD_CONTACT1, LETTERHEAD_ADDR_LINE2, LETTERHEAD_ADDR_LINE1, \
     LETTERHEAD_MOTTO, LETTERHEAD_NAME, LETTERHEAD_LOGO_IMAGE, PAYMENT_BANK, PAYMENT_ACCOUNT
 
-config_file = Path(__file__).parent.parent / "ayuh.ini"
-config = configparser.ConfigParser()
-config.read(config_file)
+fonts_dir = Path(__file__).parent / "resources" / "font"
 
 
 class PDF(FPDF, HTMLMixin):
     def header(self):
-
         logo_file = str(Path(__file__).parent / "resources" / LETTERHEAD_LOGO_IMAGE)
 
         # mandatory line of code
         self.set_font(family="Helvetica", style="B", size=11)
-        self.set_text_color(124, 75, 49)
+        self.set_text_color(37, 153, 92)
 
         # logo
-        self.image(name=logo_file, x=10, y=5, w=25)
+        self.image(name=logo_file, x=10, y=5, w=20)
 
         # title
         title_width = self.get_string_width(LETTERHEAD_NAME) + 6
@@ -41,9 +37,11 @@ class PDF(FPDF, HTMLMixin):
         self.cell(w=title_width, h=4, txt=LETTERHEAD_MOTTO, border=0, align="C")
 
         # contact
-        self.set_font(family="Helvetica", size=6)
+        # self.set_font(family="Helvetica", size=6)
+        self.add_font('DejaVu', '', str(fonts_dir / "DejaVuSansCondensed.ttf"))
+        self.set_font('DejaVu', '', 6)
         self.set_text_color(0, 0, 0)
-        self.set_y(10)
+        self.set_y(7)
         self.set_x(170)
         self.cell(w=40, h=4, txt=LETTERHEAD_ADDR_LINE1, border=0, new_y="NEXT", align="R")
         self.set_x(170)
@@ -122,9 +120,9 @@ if __name__ == "__main__":
     current_date = date.today()
 
     patient_record = {
-        'id': 'zyx321',
-        'patient_first_name': 'Smith',
-        'patient_last_name': 'Zacharias',
+        'id': 'abcd321',
+        'patient_first_name': 'John',
+        'patient_last_name': 'Nash',
         'consultation_date': current_date.strftime("%Y-%m-%d"),
         'due_date': current_date.strftime("%Y-%m-%d"),
         'terms': 'NET 30'
