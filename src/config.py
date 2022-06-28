@@ -18,3 +18,5 @@ PAYMENT_ACCOUNT = config.get("bank", "bank_account")
 
 SOFTWARE_NAME = config.get("gui", "software_name")
 SOFTWARE_VERSION = config.get("gui", "software_version")
+
+GST = config.get("gst", "gst")

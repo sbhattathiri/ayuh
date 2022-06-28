@@ -79,6 +79,7 @@ def calculate_gst(items):
 def create_pdf(patient, items, payment):
     current_time = datetime.now()
     patient_name = f"{patient['patient_last_name']}, {patient['patient_first_name']}"
+
     invoice_number = f"{patient['patient_first_name'][0].upper()}" \
                      f"{patient['patient_first_name'][-1].upper()}" \
                      f"{patient['patient_last_name'][0].upper()}" \
@@ -102,13 +103,13 @@ def create_pdf(patient, items, payment):
     invoice_items_html = invoice_items_html_template.render(patient_name=patient_name,
                                                             invoice_number=invoice_number,
                                                             invoice_date=patient['consultation_date'],
-                                                            due_date=patient['due_date'],
                                                             terms=patient['terms'],
                                                             invoice_items=items,
                                                             total=total,
                                                             gst=gst,
                                                             payment_method=payment['payment_method'],
                                                             payment_paid=payment['paid'],
+                                                            due_date=payment['due_date'],
                                                             payment_bank=PAYMENT_BANK,
                                                             payment_account=PAYMENT_ACCOUNT)
     pdf.write_html(invoice_items_html, table_line_separators=False)

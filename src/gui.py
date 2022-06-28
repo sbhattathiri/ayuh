@@ -1,7 +1,9 @@
+from datetime import date
 from tkinter import *
 from tkinter import messagebox
 
-from src.config import LETTERHEAD_NAME, SOFTWARE_NAME, SOFTWARE_VERSION
+from src.config import LETTERHEAD_NAME, SOFTWARE_NAME, SOFTWARE_VERSION, GST
+from src.generate_pdf import create_pdf
 
 WIDTH = 1350
 HEIGHT = 1350
@@ -111,6 +113,7 @@ class BillerGUI:
                                 textvariable=self.patient_id,
                                 font=(TEXT_FONT, 10, 'normal'),
                                 bd=1,
+                                state="readonly",
                                 relief=GROOVE)
         patient_id_text.grid(row=0, column=5, padx=10, pady=5)
 
@@ -328,9 +331,20 @@ class BillerGUI:
         grand_total_incl_gst = 0
         for i in range(1, BILLING_ROWS):
             if len(self.billed_items[i * BILLING_COLUMNS + 0].get()) > 0:
+
                 item_rate = float(self.billed_items[i * BILLING_COLUMNS + RATE_INDEX].get())
-                item_qty = int(self.billed_items[i * BILLING_COLUMNS + QTY_INDEX].get())
-                item_gst = float(self.billed_items[i * BILLING_COLUMNS + GST_INDEX].get()) / 100
+
+                # get item qty or set to default 1
+                try:
+                    item_qty = int(self.billed_items[i * BILLING_COLUMNS + QTY_INDEX].get())
+                except ValueError:
+                    item_qty = 1
+
+                # get item GST or set to default from config
+                try:
+                    item_gst = float(self.billed_items[i * BILLING_COLUMNS + GST_INDEX].get()) / 100
+                except ValueError:
+                    item_gst = GST
 
                 total_excl_gst = round(item_rate * item_qty, 2)
                 gst = round(item_gst * total_excl_gst, 2)
@@ -340,29 +354,68 @@ class BillerGUI:
                 grand_total_gst += gst
                 grand_total_incl_gst += total_incl_gst
 
-        # print(f"Grand Tot. excl. GST {grand_total_excl_gst}")
-        # print(f"Grand Tot. GST {grand_total_gst}")
-        # print(f"Grand Tot. incl. GST {grand_total_incl_gst}")
-        # print(f"Grand Tot. {grand_total_excl_gst + grand_total_gst}")
-
         self.total_excl_gst.set(str(grand_total_excl_gst))
         self.gst.set(str(grand_total_gst))
         self.total_incl_gst.set(str(grand_total_incl_gst))
 
-    def generate_pdf(self):
+    def parse_patient_info(self):
+        patient_info = {
+            'patient_first_name': self.patient_first_name.get(),
+            'patient_last_name': self.patient_last_name.get(),
+            'patient_id': f"{self.patient_first_name.get()[0]}"
+                          f"{self.patient_first_name.get()[-1]}"
+                          f"{self.patient_last_name.get()[0]}"
+                          f"{self.patient_last_name.get()[-1]}" if self.patient_id.get() == 'PAT. ID' else self.patient_id.get(),
+            'consultation_date': date.today().strftime("%Y-%m-%d"),
+            'terms': ''
+        }
+
+        return patient_info
+
+    def parse_bill_info(self):
         BILLING_COLUMN_INDEX_MAP = dict([(value, key) for key, value in BILLING_COLUMN_NAMES_MAP.items()])
 
+        INDEX = BILLING_COLUMN_INDEX_MAP['#']
+        ITEM_INDEX = BILLING_COLUMN_INDEX_MAP['Item']
+        DESC_INDEX = BILLING_COLUMN_INDEX_MAP['Description']
+        RATE_INDEX = BILLING_COLUMN_INDEX_MAP['Rate']
+        QTY_INDEX = BILLING_COLUMN_INDEX_MAP['Qty.']
+        GST_INDEX = BILLING_COLUMN_INDEX_MAP['GST']
+
         billed_items_info = []
-        for i in range(BILLING_ROWS):
-            item_info = []
-            for j in range(BILLING_COLUMNS):
-                info = self.billed_items[i * BILLING_COLUMNS + j].get()
-                item_info.append(info)
-            billed_items_info.append(item_info)
+        for i in range(1, BILLING_ROWS):
+            item_info = {}
+            if len(self.billed_items[i * BILLING_COLUMNS + 0].get()) > 0:
+                item_info['id'] = int(self.billed_items[i * BILLING_COLUMNS + INDEX].get())
+                item_info['item'] = self.billed_items[i * BILLING_COLUMNS + ITEM_INDEX].get()
+                item_info['description'] = self.billed_items[i * BILLING_COLUMNS + DESC_INDEX].get()
+                item_info['rate'] = float(self.billed_items[i * BILLING_COLUMNS + RATE_INDEX].get())
+                item_info['gst'] = float(self.billed_items[i * BILLING_COLUMNS + GST_INDEX].get())
+                item_info['qty'] = int(self.billed_items[i * BILLING_COLUMNS + QTY_INDEX].get())
+                billed_items_info.append(item_info)
 
-        self.billed_items = billed_items_info
+        return billed_items_info
 
-        self.message_box("file_path")
+    def parse_payment_info(self):
+        payment_info = {
+            'payment_total_excl_gst': float(self.total_excl_gst.get()),
+            'payment_gst': float(self.gst.get()),
+            'due_date': date.today().strftime("%Y-%m-%d") if self.payment_due_date.get() == '' else self.payment_due_date.get(),
+            'payment_method': self.payment_option_menu.get(),
+            'paid': round(float(self.payment_paid.get()),2)
+        }
+
+        return payment_info
+
+    def generate_pdf(self):
+        patient_info = self.parse_patient_info()
+        billed_items_info = self.parse_bill_info()
+        payment_info = self.parse_payment_info()
+
+        print(billed_items_info)
+
+        invoice_file_path = create_pdf(patient_info, billed_items_info, payment_info)
+        self.message_box(invoice_file_path)
 
     def message_box(self, invoice_file_path):
         res = messagebox.showinfo("Information", f"Invoice generated at : {invoice_file_path}")
