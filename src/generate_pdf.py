@@ -14,14 +14,12 @@ fonts_dir = Path(__file__).parent / "resources" / "font"
 
 class PDF(FPDF, HTMLMixin):
     def header(self):
-        logo_file = str(Path(__file__).parent / "resources" / LETTERHEAD_LOGO_IMAGE)
-
         # mandatory line of code
         self.set_font(family="Helvetica", style="B", size=11)
         self.set_text_color(37, 153, 92)
 
         # logo
-        self.image(name=logo_file, x=10, y=5, w=20)
+        self.image(name=LETTERHEAD_LOGO_IMAGE, x=10, y=5, w=20)
 
         # title
         title_width = self.get_string_width(LETTERHEAD_NAME) + 6

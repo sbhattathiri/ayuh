@@ -2,7 +2,7 @@ from datetime import date
 from tkinter import *
 from tkinter import messagebox
 
-from src.config import LETTERHEAD_NAME, SOFTWARE_NAME, SOFTWARE_VERSION, GST
+from src.config import LETTERHEAD_NAME, SOFTWARE_NAME, SOFTWARE_VERSION, GST, ICON
 from src.generate_pdf import create_pdf
 
 WIDTH = 1350
@@ -45,6 +45,8 @@ class BillerGUI:
         self.root = root
         # w * h + x + y
         self.root.geometry(f"{WIDTH}x{HEIGHT}+{X_OFFSET}+{Y_OFFSET}")
+
+        self.root.tk.call('wm', 'iconphoto', root._w, PhotoImage(file=ICON))
 
         window_title = f"{SOFTWARE_NAME} {SOFTWARE_VERSION}"
         self.root.title(window_title)
@@ -355,7 +357,7 @@ class BillerGUI:
                 grand_total_incl_gst += total_incl_gst
 
         self.total_excl_gst.set(str(grand_total_excl_gst))
-        self.gst.set(str(round(grand_total_gst),2))
+        self.gst.set(str(round(grand_total_gst, 2)))
         self.total_incl_gst.set(str(grand_total_incl_gst))
 
     def parse_patient_info(self):
@@ -400,9 +402,10 @@ class BillerGUI:
         payment_info = {
             'payment_total_excl_gst': float(self.total_excl_gst.get()),
             'payment_gst': float(self.gst.get()),
-            'due_date': date.today().strftime("%Y-%m-%d") if self.payment_due_date.get() == '' else self.payment_due_date.get(),
+            'due_date': date.today().strftime(
+                "%Y-%m-%d") if self.payment_due_date.get() == '' else self.payment_due_date.get(),
             'payment_method': self.payment_option_menu.get(),
-            'paid': round(float(self.payment_paid.get()),2)
+            'paid': round(float(self.payment_paid.get()), 2)
         }
 
         return payment_info
@@ -424,7 +427,11 @@ class BillerGUI:
             self.root.destroy()
 
 
-if __name__ == '__main__':
+def gui():
     root = Tk()
     billerGUI = BillerGUI(root)
     root.mainloop()
+
+
+if __name__ == '__main__':
+    gui()
