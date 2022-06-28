@@ -1,3 +1,4 @@
+import os
 from datetime import date
 from tkinter import *
 from tkinter import messagebox
@@ -46,7 +47,7 @@ class BillerGUI:
         # w * h + x + y
         self.root.geometry(f"{WIDTH}x{HEIGHT}+{X_OFFSET}+{Y_OFFSET}")
 
-        self.root.tk.call('wm', 'iconphoto', root._w, PhotoImage(file=ICON))
+        self.root.tk.call('wm', 'iconphoto', root._w, PhotoImage(file=os.path.join(os.getcwd(), ICON)))
 
         window_title = f"{SOFTWARE_NAME} {SOFTWARE_VERSION}"
         self.root.title(window_title)
@@ -433,5 +434,4 @@ def gui():
     root.mainloop()
 
 
-if __name__ == '__main__':
-    gui()
+gui()

@@ -1,15 +1,12 @@
+import os
 import time
-from datetime import date, datetime
-from pathlib import Path
+from datetime import datetime
 
 from fpdf import FPDF, HTMLMixin
 from jinja2 import FileSystemLoader, Environment
 
-from data import dummy_data
 from src.config import LETTERHEAD_CONTACT2, LETTERHEAD_CONTACT1, LETTERHEAD_ADDR_LINE2, LETTERHEAD_ADDR_LINE1, \
     LETTERHEAD_MOTTO, LETTERHEAD_NAME, LETTERHEAD_LOGO_IMAGE, PAYMENT_BANK, PAYMENT_ACCOUNT
-
-fonts_dir = Path(__file__).parent / "resources" / "font"
 
 
 class PDF(FPDF, HTMLMixin):
@@ -36,7 +33,7 @@ class PDF(FPDF, HTMLMixin):
 
         # contact
         # self.set_font(family="Helvetica", size=6)
-        self.add_font('DejaVu', '', str(fonts_dir / "DejaVuSansCondensed.ttf"))
+        self.add_font('DejaVu', '', "DejaVuSansCondensed.ttf")
         self.set_font('DejaVu', '', 6)
         self.set_text_color(0, 0, 0)
         self.set_y(7)
@@ -87,12 +84,12 @@ def create_pdf(patient, items, payment):
 
     gst, total = calculate_gst(items)
 
-    template_dir = Path(__file__).parent / 'templates'
+    template_dir = os.path.abspath(os.getcwd())
     file_loader = FileSystemLoader(str(template_dir))
     env = Environment(loader=file_loader, autoescape=True)
 
     pdf_name = f"{patient['patient_id']}_{time.time()}.pdf"
-    pdf_path = Path(__file__).parent.parent / "bills" / pdf_name
+
     pdf = PDF()
     pdf.add_page()
     pdf.set_font("Courier", size=8)
@@ -112,27 +109,6 @@ def create_pdf(patient, items, payment):
                                                             payment_account=PAYMENT_ACCOUNT)
     pdf.write_html(invoice_items_html, table_line_separators=False)
 
-    pdf.output(pdf_path)
+    pdf.output(pdf_name)
 
-    return pdf_path
-
-
-if __name__ == "__main__":
-    current_date = date.today()
-
-    patient_record = {
-        'id': 'abcd321',
-        'patient_first_name': 'John',
-        'patient_last_name': 'Nash',
-        'consultation_date': current_date.strftime("%Y-%m-%d"),
-        'due_date': current_date.strftime("%Y-%m-%d"),
-        'terms': 'NET 30'
-    }
-
-    invoice_items = dummy_data
-
-    payment = {
-        'payment_method': 'CARD',
-        'paid': 1032.00
-    }
-    create_pdf(patient=patient_record, items=invoice_items, payment=payment)
+    return pdf_name
