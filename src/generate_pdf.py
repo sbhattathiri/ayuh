@@ -93,7 +93,7 @@ def create_pdf(patient, items, payment):
     file_loader = FileSystemLoader(str(template_dir))
     env = Environment(loader=file_loader, autoescape=True)
 
-    pdf_name = f"{patient['id']}_{time.time()}.pdf"
+    pdf_name = f"{patient['patient_id']}_{time.time()}.pdf"
     pdf_path = Path(__file__).parent.parent / "bills" / pdf_name
     pdf = PDF()
     pdf.add_page()

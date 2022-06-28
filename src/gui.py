@@ -355,17 +355,17 @@ class BillerGUI:
                 grand_total_incl_gst += total_incl_gst
 
         self.total_excl_gst.set(str(grand_total_excl_gst))
-        self.gst.set(str(grand_total_gst))
+        self.gst.set(str(round(grand_total_gst),2))
         self.total_incl_gst.set(str(grand_total_incl_gst))
 
     def parse_patient_info(self):
         patient_info = {
             'patient_first_name': self.patient_first_name.get(),
             'patient_last_name': self.patient_last_name.get(),
-            'patient_id': f"{self.patient_first_name.get()[0]}"
-                          f"{self.patient_first_name.get()[-1]}"
-                          f"{self.patient_last_name.get()[0]}"
-                          f"{self.patient_last_name.get()[-1]}" if self.patient_id.get() == 'PAT. ID' else self.patient_id.get(),
+            'patient_id': f"{self.patient_first_name.get()[0].upper()}"
+                          f"{self.patient_first_name.get()[-1].upper()}"
+                          f"{self.patient_last_name.get()[0].upper()}"
+                          f"{self.patient_last_name.get()[-1].upper()}" if self.patient_id.get() == 'PAT. ID' else self.patient_id.get(),
             'consultation_date': date.today().strftime("%Y-%m-%d"),
             'terms': ''
         }
