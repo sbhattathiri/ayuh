@@ -32,7 +32,6 @@ class PDF(FPDF, HTMLMixin):
         self.cell(w=title_width, h=4, txt=LETTERHEAD_MOTTO, border=0, align="C")
 
         # contact
-        # self.set_font(family="Helvetica", size=6)
         self.add_font('DejaVu', '', "DejaVuSansCondensed.ttf")
         self.set_font('DejaVu', '', 6)
         self.set_text_color(0, 0, 0)

@@ -323,11 +323,11 @@ class BillerGUI:
         generate_invoice.grid(row=0, column=1, padx=5, pady=5)
 
     def total(self):
-        BILLING_COLUMN_INDEX_MAP = dict([(value, key) for key, value in BILLING_COLUMN_NAMES_MAP.items()])
+        billing_column_index_map = dict([(value, key) for key, value in BILLING_COLUMN_NAMES_MAP.items()])
 
-        RATE_INDEX = BILLING_COLUMN_INDEX_MAP['Rate']
-        QTY_INDEX = BILLING_COLUMN_INDEX_MAP['Qty.']
-        GST_INDEX = BILLING_COLUMN_INDEX_MAP['GST']
+        rate_index = billing_column_index_map['Rate']
+        qty_index = billing_column_index_map['Qty.']
+        gst_index = billing_column_index_map['GST']
 
         grand_total_excl_gst = 0
         grand_total_gst = 0
@@ -335,17 +335,17 @@ class BillerGUI:
         for i in range(1, BILLING_ROWS):
             if len(self.billed_items[i * BILLING_COLUMNS + 0].get()) > 0:
 
-                item_rate = float(self.billed_items[i * BILLING_COLUMNS + RATE_INDEX].get())
+                item_rate = float(self.billed_items[i * BILLING_COLUMNS + rate_index].get())
 
                 # get item qty or set to default 1
                 try:
-                    item_qty = int(self.billed_items[i * BILLING_COLUMNS + QTY_INDEX].get())
+                    item_qty = int(self.billed_items[i * BILLING_COLUMNS + qty_index].get())
                 except ValueError:
                     item_qty = 1
 
                 # get item GST or set to default from config
                 try:
-                    item_gst = float(self.billed_items[i * BILLING_COLUMNS + GST_INDEX].get()) / 100
+                    item_gst = float(self.billed_items[i * BILLING_COLUMNS + gst_index].get()) / 100
                 except ValueError:
                     item_gst = GST
 
@@ -376,25 +376,31 @@ class BillerGUI:
         return patient_info
 
     def parse_bill_info(self):
-        BILLING_COLUMN_INDEX_MAP = dict([(value, key) for key, value in BILLING_COLUMN_NAMES_MAP.items()])
+        billing_column_index_map = dict([(value, key) for key, value in BILLING_COLUMN_NAMES_MAP.items()])
 
-        INDEX = BILLING_COLUMN_INDEX_MAP['#']
-        ITEM_INDEX = BILLING_COLUMN_INDEX_MAP['Item']
-        DESC_INDEX = BILLING_COLUMN_INDEX_MAP['Description']
-        RATE_INDEX = BILLING_COLUMN_INDEX_MAP['Rate']
-        QTY_INDEX = BILLING_COLUMN_INDEX_MAP['Qty.']
-        GST_INDEX = BILLING_COLUMN_INDEX_MAP['GST']
+        index = billing_column_index_map['#']
+        item_index = billing_column_index_map['Item']
+        desc_index = billing_column_index_map['Description']
+        rate_index = billing_column_index_map['Rate']
+        qty_index = billing_column_index_map['Qty.']
+        gst_index = billing_column_index_map['GST']
 
         billed_items_info = []
         for i in range(1, BILLING_ROWS):
             item_info = {}
             if len(self.billed_items[i * BILLING_COLUMNS + 0].get()) > 0:
-                item_info['id'] = int(self.billed_items[i * BILLING_COLUMNS + INDEX].get())
-                item_info['item'] = self.billed_items[i * BILLING_COLUMNS + ITEM_INDEX].get()
-                item_info['description'] = self.billed_items[i * BILLING_COLUMNS + DESC_INDEX].get()
-                item_info['rate'] = float(self.billed_items[i * BILLING_COLUMNS + RATE_INDEX].get())
-                item_info['gst'] = float(self.billed_items[i * BILLING_COLUMNS + GST_INDEX].get())
-                item_info['qty'] = int(self.billed_items[i * BILLING_COLUMNS + QTY_INDEX].get())
+                item_info['id'] = int(self.billed_items[i * BILLING_COLUMNS + index].get())
+                item_info['item'] = self.billed_items[i * BILLING_COLUMNS + item_index].get()
+                item_info['description'] = self.billed_items[i * BILLING_COLUMNS + desc_index].get()
+                item_info['rate'] = float(self.billed_items[i * BILLING_COLUMNS + rate_index].get())
+                if self.billed_items[i * BILLING_COLUMNS + gst_index].get() != '':
+                    item_info['gst'] = float(self.billed_items[i * BILLING_COLUMNS + gst_index].get())
+                else:
+                    item_info['gst'] = GST
+                if self.billed_items[i * BILLING_COLUMNS + qty_index].get() != '':
+                    item_info['qty'] = int(self.billed_items[i * BILLING_COLUMNS + qty_index].get())
+                else:
+                    item_info['qty'] = 1
                 billed_items_info.append(item_info)
 
         return billed_items_info
