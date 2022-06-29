@@ -1,16 +1,21 @@
-LETTERHEAD_NAME = "Ayurarogya"
-LETTERHEAD_MOTTO = "Your healing space for better living"
-LETTERHEAD_ADDR_LINE1 = "18 Kingscliff Avenue"
-LETTERHEAD_ADDR_LINE2 = "Clyde, Victoria 3978"
-LETTERHEAD_CONTACT1 = "☎ 0470 432 355"
-LETTERHEAD_CONTACT2 = "✉ info@ayurarogya.com.au"
-LETTERHEAD_LOGO_IMAGE = "ayurarogya.png"
+import configparser
 
-PAYMENT_BANK = "Bank of Australia, Westside 1234"
-PAYMENT_ACCOUNT = "123456789"
+config = configparser.ConfigParser()
+config.read('config.ini', 'UTF-8')
 
-SOFTWARE_NAME = "SMGN"
-SOFTWARE_VERSION = "v0.1"
-ICON = "ayurarogya.png"
+LETTERHEAD_NAME = config.get("letterhead", "letterhead_name")
+LETTERHEAD_MOTTO = config.get("letterhead", "letterhead_motto")
+LETTERHEAD_ADDR_LINE1 = config.get("letterhead", "letterhead_addr_line1")
+LETTERHEAD_ADDR_LINE2 = config.get("letterhead", "letterhead_addr_line2")
+LETTERHEAD_CONTACT1 = config.get("letterhead", "letterhead_contact1")
+LETTERHEAD_CONTACT2 = config.get("letterhead", "letterhead_contact2")
+LETTERHEAD_LOGO_IMAGE = config.get("letterhead", "logo")
 
-GST = 10.00
+PAYMENT_BANK = config.get("bank", "bank_address")
+PAYMENT_ACCOUNT = config.get("bank", "bank_account")
+
+SOFTWARE_NAME = config.get("gui", "software_name")
+SOFTWARE_VERSION = config.get("gui", "software_version")
+ICON = config.get("gui", "icon")
+
+GST = config.get("gst", "gst")
