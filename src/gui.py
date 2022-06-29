@@ -347,7 +347,7 @@ class BillerGUI:
                 try:
                     item_gst = float(self.billed_items[i * BILLING_COLUMNS + gst_index].get()) / 100
                 except ValueError:
-                    item_gst = GST
+                    item_gst = round(float(GST) / 100, 2)
 
                 total_excl_gst = round(item_rate * item_qty, 2)
                 gst = round(item_gst * total_excl_gst, 2)
@@ -396,7 +396,7 @@ class BillerGUI:
                 if self.billed_items[i * BILLING_COLUMNS + gst_index].get() != '':
                     item_info['gst'] = float(self.billed_items[i * BILLING_COLUMNS + gst_index].get())
                 else:
-                    item_info['gst'] = GST
+                    item_info['gst'] = float(GST)
                 if self.billed_items[i * BILLING_COLUMNS + qty_index].get() != '':
                     item_info['qty'] = int(self.billed_items[i * BILLING_COLUMNS + qty_index].get())
                 else:
