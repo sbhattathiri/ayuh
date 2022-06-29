@@ -1,11 +1,10 @@
 import time
-from datetime import date, datetime
+from datetime import datetime
 from pathlib import Path
 
 from fpdf import FPDF, HTMLMixin
 from jinja2 import FileSystemLoader, Environment
 
-from data import dummy_data
 from src.config import LETTERHEAD_CONTACT2, LETTERHEAD_CONTACT1, LETTERHEAD_ADDR_LINE2, LETTERHEAD_ADDR_LINE1, \
     LETTERHEAD_MOTTO, LETTERHEAD_NAME, LETTERHEAD_LOGO_IMAGE, PAYMENT_BANK, PAYMENT_ACCOUNT
 
@@ -35,7 +34,6 @@ class PDF(FPDF, HTMLMixin):
         self.cell(w=title_width, h=4, txt=LETTERHEAD_MOTTO, border=0, align="C")
 
         # contact
-        # self.set_font(family="Helvetica", size=6)
         self.add_font('DejaVu', '', str(fonts_dir / "DejaVuSansCondensed.ttf"))
         self.set_font('DejaVu', '', 6)
         self.set_text_color(0, 0, 0)
@@ -115,24 +113,3 @@ def create_pdf(patient, items, payment):
     pdf.output(pdf_path)
 
     return pdf_path
-
-
-if __name__ == "__main__":
-    current_date = date.today()
-
-    patient_record = {
-        'id': 'abcd321',
-        'patient_first_name': 'John',
-        'patient_last_name': 'Nash',
-        'consultation_date': current_date.strftime("%Y-%m-%d"),
-        'due_date': current_date.strftime("%Y-%m-%d"),
-        'terms': 'NET 30'
-    }
-
-    invoice_items = dummy_data
-
-    payment = {
-        'payment_method': 'CARD',
-        'paid': 1032.00
-    }
-    create_pdf(patient=patient_record, items=invoice_items, payment=payment)
