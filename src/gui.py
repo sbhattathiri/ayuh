@@ -2,7 +2,7 @@ from datetime import date
 from tkinter import *
 from tkinter import messagebox
 
-from src.config import LETTERHEAD_NAME, SOFTWARE_NAME, SOFTWARE_VERSION, GST, ICON
+from src.config import LETTERHEAD_NAME, SOFTWARE_NAME, SOFTWARE_VERSION, GST, ICON, CONSULTATION_FEE
 from src.generate_pdf import create_pdf
 
 WIDTH = 1350
@@ -36,6 +36,15 @@ BILLING_COLUMNS_WIDTH_MAP = {
     3: 10,
     4: 15,
     5: 15
+}
+
+CONSULTATION_FEE_ROW = {
+    0: '1',
+    1: 'Consultation Fee',
+    2: '',
+    3: 'NA',
+    4: float(CONSULTATION_FEE),
+    5: 'NA'
 }
 
 
@@ -145,6 +154,17 @@ class BillerGUI:
                                          )
                     header_text.set(BILLING_COLUMN_NAMES_MAP[column])
 
+                elif row == 1:
+                    header_text = StringVar()
+                    billing_item = Entry(billing_info_frame,
+                                         width=BILLING_COLUMNS_WIDTH_MAP[column],
+                                         font=(TEXT_FONT, 10, 'normal'),
+                                         bd=1,
+                                         relief=SUNKEN,
+                                         textvariable=header_text
+                                         )
+                    header_text.set(CONSULTATION_FEE_ROW[column])
+
                 else:
                     billing_item = Entry(billing_info_frame,
                                          width=BILLING_COLUMNS_WIDTH_MAP[column],
@@ -183,7 +203,6 @@ class BillerGUI:
         self.total_excl_gst = StringVar()
         self.gst = StringVar()
         self.total_incl_gst = StringVar()
-        self.payment_due_date = StringVar()
         self.payment_option_menu = StringVar()
         self.payment_paid = StringVar()
 
@@ -248,23 +267,6 @@ class BillerGUI:
                                             state="readonly",
                                             relief=GROOVE)
         payment_total_incl_gst_text.grid(row=2, column=1, padx=10, pady=5)
-
-        payment_due_date_label = Label(payment_info_frame,
-                                       width=20,
-                                       text="Payment Due Date",
-                                       font=(LABEL_FONT, 10, 'normal'),
-                                       anchor="e",
-                                       justify=LEFT,
-                                       bg=BACKGROUND)
-        payment_due_date_label.grid(row=3, column=0, padx=20, pady=5)
-
-        payment_due_date_text = Entry(payment_info_frame,
-                                      width=20,
-                                      textvariable=self.payment_due_date,
-                                      font=(TEXT_FONT, 10, 'normal'),
-                                      bd=1,
-                                      relief=GROOVE)
-        payment_due_date_text.grid(row=3, column=1, padx=10, pady=5)
 
         payment_option_label = Label(payment_info_frame,
                                      width=20,
@@ -343,10 +345,13 @@ class BillerGUI:
                     item_qty = 1
 
                 # get item GST or set to default from config
-                try:
-                    item_gst = float(self.billed_items[i * BILLING_COLUMNS + gst_index].get()) / 100
-                except ValueError:
-                    item_gst = round(float(GST) / 100, 2)
+                if self.billed_items[i * BILLING_COLUMNS + gst_index].get() == 'NA':
+                    item_gst = 0.0
+                else:
+                    try:
+                        item_gst = float(self.billed_items[i * BILLING_COLUMNS + gst_index].get()) / 100
+                    except ValueError:
+                        item_gst = round(float(GST) / 100, 2)
 
                 total_excl_gst = round(item_rate * item_qty, 2)
                 gst = round(item_gst * total_excl_gst, 2)
@@ -392,11 +397,15 @@ class BillerGUI:
                 item_info['item'] = self.billed_items[i * BILLING_COLUMNS + item_index].get()
                 item_info['description'] = self.billed_items[i * BILLING_COLUMNS + desc_index].get()
                 item_info['rate'] = float(self.billed_items[i * BILLING_COLUMNS + rate_index].get())
-                if self.billed_items[i * BILLING_COLUMNS + gst_index].get() != '':
+                if self.billed_items[i * BILLING_COLUMNS + gst_index].get() == 'NA':
+                    item_info['gst'] = 'NA'
+                elif self.billed_items[i * BILLING_COLUMNS + gst_index].get() != '':
                     item_info['gst'] = float(self.billed_items[i * BILLING_COLUMNS + gst_index].get())
                 else:
                     item_info['gst'] = float(GST)
-                if self.billed_items[i * BILLING_COLUMNS + qty_index].get() != '':
+                if self.billed_items[i * BILLING_COLUMNS + qty_index].get() == 'NA':
+                    item_info['qty'] = ''
+                elif self.billed_items[i * BILLING_COLUMNS + qty_index].get() != '':
                     item_info['qty'] = int(self.billed_items[i * BILLING_COLUMNS + qty_index].get())
                 else:
                     item_info['qty'] = 1
@@ -408,8 +417,6 @@ class BillerGUI:
         payment_info = {
             'payment_total_excl_gst': float(self.total_excl_gst.get()),
             'payment_gst': float(self.gst.get()),
-            'due_date': date.today().strftime(
-                "%Y-%m-%d") if self.payment_due_date.get() == '' else self.payment_due_date.get(),
             'payment_method': self.payment_option_menu.get(),
             'paid': round(float(self.payment_paid.get()), 2)
         }
