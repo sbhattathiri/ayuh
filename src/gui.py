@@ -418,26 +418,25 @@ class BillerGUI:
             'payment_total_excl_gst': float(self.total_excl_gst.get()),
             'payment_gst': float(self.gst.get()),
             'payment_method': self.payment_option_menu.get(),
-            'paid': round(float(self.payment_paid.get()), 2)
+            'paid': round(float(self.payment_paid.get()), 2) if self.payment_paid.get() else 0.0
         }
 
         return payment_info
 
     def generate_pdf(self):
-        patient_info = self.parse_patient_info()
-        billed_items_info = self.parse_bill_info()
-        payment_info = self.parse_payment_info()
+        if self.patient_first_name.get() == '' or self.patient_last_name.get() == '':
+            res = messagebox.showwarning("Warning", "Please enter patient first name and last name")
+            if res == 'ok':
+                pass
+        else:
+            patient_info = self.parse_patient_info()
+            billed_items_info = self.parse_bill_info()
+            payment_info = self.parse_payment_info()
 
-        print(billed_items_info)
-
-        invoice_file_path = create_pdf(patient_info, billed_items_info, payment_info)
-        self.message_box(invoice_file_path)
-
-    def message_box(self, invoice_file_path):
-        res = messagebox.showinfo("Information", f"Invoice generated at : {invoice_file_path}")
-        print(res)
-        if res == 'ok':
-            self.root.destroy()
+            invoice_file_path = create_pdf(patient_info, billed_items_info, payment_info)
+            res = messagebox.showinfo("Information", f"Invoice generated at : {invoice_file_path}")
+            if res == 'ok':
+                self.root.destroy()
 
 
 def gui():
