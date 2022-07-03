@@ -12,7 +12,7 @@ from src.config import LETTERHEAD_CONTACT2, LETTERHEAD_CONTACT1, LETTERHEAD_ADDR
 class PDF(FPDF, HTMLMixin):
     def header(self):
         # mandatory line of code
-        self.set_font(family="Helvetica", style="B", size=11)
+        self.set_font(family="Helvetica", style="B", size=13)
         self.set_text_color(37, 153, 92)
 
         # logo
@@ -27,7 +27,8 @@ class PDF(FPDF, HTMLMixin):
 
         # motto
         self.set_font("Helvetica", "I", 7)
-        self.set_text_color(209, 192, 183)
+        # self.set_text_color(209, 192, 183)
+        self.set_text_color(92, 82, 77)
         self.set_x((210 - title_width) / 2)
         self.cell(w=title_width, h=4, txt=LETTERHEAD_MOTTO, border=0, align="C")
 
@@ -56,21 +57,44 @@ class PDF(FPDF, HTMLMixin):
         self.cell(0, 10, f"Page {self.page_no()}/{{nb}}", align="C")
 
 
-def calculate_gst(items):
+def calculate_gst(billed_items):
+    totalled_items = []
     gst_total = 0
     total = 0
-    for item in items:
-        item_gst_rate = item['gst'] / 100
-        item_total = round((item['rate']) * item['qty'], 2)
+    for billed_item in billed_items:
+        totalled_item = {}
+
+        if billed_item['gst'] == 'NA':
+            item_gst_rate = 0.0
+        else:
+            item_gst_rate = billed_item['gst'] / 100
+
+        item_rate = billed_item['rate']
+
+        if billed_item['qty'] == '':
+            item_qty = 1
+        else:
+            item_qty = billed_item['qty']
+
+        item_total = round((item_rate * item_qty), 2)
         total += item_total
 
-        item_gst = round(item_gst_rate * item_total, 2)
+        item_gst = round((item_gst_rate * item_total), 2)
         gst_total += item_gst
 
-    return gst_total, round(total, 2)
+        totalled_item['id'] = billed_item['id']
+        totalled_item['item'] = billed_item['item']
+        totalled_item['description'] = billed_item['description']
+        totalled_item['rate'] = billed_item['rate']
+        totalled_item['gst'] = '' if billed_item['gst'] == 'NA' else billed_item['gst']
+        totalled_item['qty'] = billed_item['qty']
+        totalled_item['amount'] = item_total
+        totalled_items.append(totalled_item)
+
+    return totalled_items, round(gst_total, 2), round(total, 2)
 
 
-def create_pdf(patient, items, payment):
+def create_pdf(patient, billed_items, payment):
     current_time = datetime.now()
     patient_name = f"{patient['patient_last_name']}, {patient['patient_first_name']}"
 
@@ -81,13 +105,14 @@ def create_pdf(patient, items, payment):
                      f"{patient['consultation_date'].replace('-', '')}" \
                      f"-{current_time.strftime('%H%M%S')}"
 
-    gst, total = calculate_gst(items)
+    totalled_items, gst, total = calculate_gst(billed_items)
 
     template_dir = os.path.abspath(os.getcwd())
     file_loader = FileSystemLoader(str(template_dir))
     env = Environment(loader=file_loader, autoescape=True)
 
     pdf_name = f"{patient['patient_id']}_{time.time()}.pdf"
+    pdf_file = os.path.join(os.getcwd(), "../dist/bills", pdf_name)
 
     pdf = PDF()
     pdf.add_page()
@@ -97,17 +122,15 @@ def create_pdf(patient, items, payment):
     invoice_items_html = invoice_items_html_template.render(patient_name=patient_name,
                                                             invoice_number=invoice_number,
                                                             invoice_date=patient['consultation_date'],
-                                                            terms=patient['terms'],
-                                                            invoice_items=items,
+                                                            invoice_items=totalled_items,
                                                             total=total,
                                                             gst=gst,
                                                             payment_method=payment['payment_method'],
                                                             payment_paid=payment['paid'],
-                                                            due_date=payment['due_date'],
                                                             payment_bank=PAYMENT_BANK,
                                                             payment_account=PAYMENT_ACCOUNT)
     pdf.write_html(invoice_items_html, table_line_separators=False)
 
-    pdf.output(pdf_name)
+    pdf.output(pdf_file)
 
-    return pdf_name
+    return pdf_file

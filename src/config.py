@@ -19,3 +19,5 @@ SOFTWARE_VERSION = config.get("gui", "software_version")
 ICON = config.get("gui", "icon")
 
 GST = config.get("gst", "gst")
+
+CONSULTATION_FEE = config.get("fee", "consultation_fee")
