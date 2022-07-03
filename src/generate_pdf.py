@@ -97,7 +97,6 @@ def calculate_gst(billed_items):
 
 
 def create_pdf(patient, billed_items, payment):
-    print(billed_items)
     current_time = datetime.now()
     patient_name = f"{patient['patient_last_name']}, {patient['patient_first_name']}"
 
@@ -119,8 +118,6 @@ def create_pdf(patient, billed_items, payment):
     pdf = PDF()
     pdf.add_page()
     pdf.set_font("Courier", size=8)
-
-    print(billed_items)
 
     invoice_items_html_template = env.get_template(f'invoice_template.html')
     invoice_items_html = invoice_items_html_template.render(patient_name=patient_name,
