@@ -20,6 +20,9 @@ SOFTWARE_NAME = config.get("gui", "software_name")
 SOFTWARE_VERSION = config.get("gui", "software_version")
 ICON = str(Path(__file__).parent / "resources" / config.get("gui", "icon"))
 
+ABN = config.get("abn", "abn")
+
+APPLY_GST = True if config.get("gst", "apply_gst").lower() == 'true' else False
 GST = config.get("gst", "gst")
 
 CONSULTATION_FEE = config.get("fee", "consultation_fee")

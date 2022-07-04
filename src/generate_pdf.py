@@ -6,7 +6,7 @@ from fpdf import FPDF, HTMLMixin
 from jinja2 import FileSystemLoader, Environment
 
 from src.config import LETTERHEAD_CONTACT2, LETTERHEAD_CONTACT1, LETTERHEAD_ADDR_LINE2, LETTERHEAD_ADDR_LINE1, \
-    LETTERHEAD_MOTTO, LETTERHEAD_NAME, LETTERHEAD_LOGO_IMAGE, PAYMENT_BANK, PAYMENT_ACCOUNT
+    LETTERHEAD_MOTTO, LETTERHEAD_NAME, LETTERHEAD_LOGO_IMAGE, PAYMENT_BANK, PAYMENT_ACCOUNT, ABN, APPLY_GST
 
 fonts_dir = Path(__file__).parent / "resources" / "font"
 
@@ -123,9 +123,12 @@ def create_pdf(patient, billed_items, payment):
     invoice_items_html = invoice_items_html_template.render(patient_name=patient_name,
                                                             invoice_number=invoice_number,
                                                             invoice_date=patient['consultation_date'],
+                                                            abn=ABN,
                                                             invoice_items=totalled_items,
                                                             total=total,
+                                                            apply_gst=APPLY_GST,
                                                             gst=gst,
+                                                            payment_due_date=payment['payment_due_date'],
                                                             payment_method=payment['payment_method'],
                                                             payment_paid=payment['paid'],
                                                             payment_bank=PAYMENT_BANK,

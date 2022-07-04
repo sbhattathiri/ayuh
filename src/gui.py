@@ -2,7 +2,7 @@ from datetime import date
 from tkinter import *
 from tkinter import messagebox
 
-from src.config import LETTERHEAD_NAME, SOFTWARE_NAME, SOFTWARE_VERSION, GST, ICON, CONSULTATION_FEE
+from src.config import LETTERHEAD_NAME, SOFTWARE_NAME, SOFTWARE_VERSION, GST, ICON, CONSULTATION_FEE, APPLY_GST
 from src.generate_pdf import create_pdf
 
 WIDTH = 1350
@@ -129,6 +129,28 @@ class BillerGUI:
         patient_id_text.grid(row=0, column=5, padx=10, pady=5)
 
         # billing info
+        checked = 1 if APPLY_GST else 0
+        self.apply_gst = IntVar(value=checked)
+
+        checkbox_frame = LabelFrame(self.root,
+                                    text="GST",
+                                    font=(LABEL_FONT, 10, 'bold'),
+                                    bd=1,
+                                    bg=BACKGROUND,
+                                    fg=FOREGROUND)
+        checkbox_frame.place(x=0, y=125, width=1350, relwidth=0.5)
+
+        apply_gst_checkbox = Checkbutton(checkbox_frame,
+                                         text="Apply GST",
+                                         font=(LABEL_FONT, 10, 'normal'),
+                                         variable=self.apply_gst,
+                                         onvalue=1,
+                                         offvalue=0,
+                                         state="disabled",
+                                         height=2,
+                                         width=10)
+        apply_gst_checkbox.grid(row=0, column=0, padx=10, pady=5)
+
         self.billed_items = []
         self.billed_items_info = None
 
@@ -138,7 +160,7 @@ class BillerGUI:
                                         bd=1,
                                         bg=BACKGROUND,
                                         fg=FOREGROUND)
-        billing_info_frame.place(x=0, y=125, width=1350, relwidth=0.5)
+        billing_info_frame.place(x=0, y=190, width=1350, relwidth=0.5)
 
         for row in range(BILLING_ROWS):
             for column in range(BILLING_COLUMNS):
@@ -173,9 +195,9 @@ class BillerGUI:
                                          relief=SUNKEN
                                          )
                 if column == 0:
-                    billing_item.grid(row=row, column=column, padx=(20, 0))
+                    billing_item.grid(row=row + 1, column=column, padx=(20, 0))
                 else:
-                    billing_item.grid(row=row, column=column, padx=0)
+                    billing_item.grid(row=row + 1, column=column, padx=0)
 
                 self.billed_items.append(billing_item)
 
@@ -186,7 +208,7 @@ class BillerGUI:
                                         bd=1,
                                         bg=BACKGROUND,
                                         fg=FOREGROUND)
-        total_button_frame.place(x=0, y=515, width=1350, relwidth=0.5)
+        total_button_frame.place(x=0, y=580, width=1350, relwidth=0.5)
 
         calculate_total = Button(total_button_frame,
                                  command=self.total,
@@ -203,6 +225,7 @@ class BillerGUI:
         self.total_excl_gst = StringVar()
         self.gst = StringVar()
         self.total_incl_gst = StringVar()
+        self.payment_due_date = StringVar()
         self.payment_option_menu = StringVar()
         self.payment_paid = StringVar()
 
@@ -212,7 +235,7 @@ class BillerGUI:
                                         bd=1,
                                         bg=BACKGROUND,
                                         fg=FOREGROUND)
-        payment_info_frame.place(x=0, y=580, width=1350, relwidth=0.5)
+        payment_info_frame.place(x=0, y=650, width=1350, relwidth=0.5)
 
         payment_total_excl_gst_label = Label(payment_info_frame,
                                              width=20,
@@ -268,6 +291,23 @@ class BillerGUI:
                                             relief=GROOVE)
         payment_total_incl_gst_text.grid(row=2, column=1, padx=10, pady=5)
 
+        payment_due_date_label = Label(payment_info_frame,
+                                       width=20,
+                                       text="Payment Due Date",
+                                       font=(LABEL_FONT, 10, 'normal'),
+                                       anchor="e",
+                                       justify=LEFT,
+                                       bg=BACKGROUND)
+        payment_due_date_label.grid(row=3, column=0, padx=20, pady=5)
+
+        payment_due_date_text = Entry(payment_info_frame,
+                                      width=20,
+                                      textvariable=self.payment_due_date,
+                                      font=(TEXT_FONT, 10, 'normal'),
+                                      bd=1,
+                                      relief=GROOVE)
+        payment_due_date_text.grid(row=3, column=1, padx=10, pady=5)
+
         payment_option_label = Label(payment_info_frame,
                                      width=20,
                                      text="Payment Option",
@@ -310,7 +350,7 @@ class BillerGUI:
                                           bd=1,
                                           bg=BACKGROUND,
                                           fg=FOREGROUND)
-        invoice_button_frame.place(x=0, y=820, width=1350, relwidth=0.5)
+        invoice_button_frame.place(x=0, y=885, width=1350, relwidth=0.5)
 
         generate_invoice = Button(invoice_button_frame,
                                   command=self.generate_pdf,
@@ -345,13 +385,16 @@ class BillerGUI:
                     item_qty = 1
 
                 # get item GST or set to default from config
-                if self.billed_items[i * BILLING_COLUMNS + gst_index].get() == 'NA':
-                    item_gst = 0.0
+                if APPLY_GST:
+                    if self.billed_items[i * BILLING_COLUMNS + gst_index].get() == 'NA':
+                        item_gst = 0.0
+                    else:
+                        try:
+                            item_gst = float(self.billed_items[i * BILLING_COLUMNS + gst_index].get()) / 100
+                        except ValueError:
+                            item_gst = round(float(GST) / 100, 2)
                 else:
-                    try:
-                        item_gst = float(self.billed_items[i * BILLING_COLUMNS + gst_index].get()) / 100
-                    except ValueError:
-                        item_gst = round(float(GST) / 100, 2)
+                    item_gst = 0.0
 
                 total_excl_gst = round(item_rate * item_qty, 2)
                 gst = round(item_gst * total_excl_gst, 2)
@@ -397,12 +440,15 @@ class BillerGUI:
                 item_info['item'] = self.billed_items[i * BILLING_COLUMNS + item_index].get()
                 item_info['description'] = self.billed_items[i * BILLING_COLUMNS + desc_index].get()
                 item_info['rate'] = float(self.billed_items[i * BILLING_COLUMNS + rate_index].get())
-                if self.billed_items[i * BILLING_COLUMNS + gst_index].get() == 'NA':
-                    item_info['gst'] = 'NA'
-                elif self.billed_items[i * BILLING_COLUMNS + gst_index].get() != '':
-                    item_info['gst'] = float(self.billed_items[i * BILLING_COLUMNS + gst_index].get())
+                if APPLY_GST:
+                    if self.billed_items[i * BILLING_COLUMNS + gst_index].get() == 'NA':
+                        item_info['gst'] = 'NA'
+                    elif self.billed_items[i * BILLING_COLUMNS + gst_index].get() != '':
+                        item_info['gst'] = float(self.billed_items[i * BILLING_COLUMNS + gst_index].get())
+                    else:
+                        item_info['gst'] = float(GST)
                 else:
-                    item_info['gst'] = float(GST)
+                    item_info['gst'] = 0.0
                 if self.billed_items[i * BILLING_COLUMNS + qty_index].get() == 'NA':
                     item_info['qty'] = ''
                 elif self.billed_items[i * BILLING_COLUMNS + qty_index].get() != '':
@@ -417,6 +463,8 @@ class BillerGUI:
         payment_info = {
             'payment_total_excl_gst': float(self.total_excl_gst.get()),
             'payment_gst': float(self.gst.get()),
+            'payment_due_date': date.today().strftime(
+                "%Y-%m-%d") if self.payment_due_date.get() == '' else self.payment_due_date.get(),
             'payment_method': self.payment_option_menu.get(),
             'paid': round(float(self.payment_paid.get()), 2) if self.payment_paid.get() else 0.0
         }
