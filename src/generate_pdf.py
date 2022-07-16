@@ -105,7 +105,7 @@ def create_pdf(patient, billed_items, payment):
                      f"{patient['patient_last_name'][0].upper()}" \
                      f"{patient['patient_last_name'][-1].upper()}" \
                      f"{patient['consultation_date'].replace('-', '')}" \
-                     f"-{current_time.strftime('%H%M%S')}"
+                     #f"-{current_time.strftime('%H%M%S')}"
 
     totalled_items, gst, total = calculate_gst(billed_items)
 

@@ -5,8 +5,8 @@ from tkinter import messagebox
 from src.config import LETTERHEAD_NAME, SOFTWARE_NAME, SOFTWARE_VERSION, GST, ICON, CONSULTATION_FEE, APPLY_GST
 from src.generate_pdf import create_pdf
 
-WIDTH = 1350
-HEIGHT = 1350
+WIDTH = 600
+HEIGHT = 600
 X_OFFSET = 0
 Y_OFFSET = 0
 
@@ -171,7 +171,7 @@ class BillerGUI:
                                          font=(TEXT_FONT, 10, 'normal'),
                                          bd=1,
                                          relief=SUNKEN,
-                                         state="readonly",
+                                         #state="readonly",
                                          textvariable=header_text
                                          )
                     header_text.set(BILLING_COLUMN_NAMES_MAP[column])
@@ -208,7 +208,7 @@ class BillerGUI:
                                         bd=1,
                                         bg=BACKGROUND,
                                         fg=FOREGROUND)
-        total_button_frame.place(x=0, y=580, width=1350, relwidth=0.5)
+        total_button_frame.place(x=0, y=460, width=1350, relwidth=0.5)
 
         calculate_total = Button(total_button_frame,
                                  command=self.total,
@@ -235,7 +235,7 @@ class BillerGUI:
                                         bd=1,
                                         bg=BACKGROUND,
                                         fg=FOREGROUND)
-        payment_info_frame.place(x=0, y=650, width=1350, relwidth=0.5)
+        payment_info_frame.place(x=0, y=520, width=1350, relwidth=0.5)
 
         payment_total_excl_gst_label = Label(payment_info_frame,
                                              width=20,
@@ -318,7 +318,7 @@ class BillerGUI:
         payment_option_label.grid(row=4, column=0, padx=20, pady=5)
 
         self.payment_option_menu.set("CARD")
-        payment_options = OptionMenu(payment_info_frame, self.payment_option_menu, "CARD", "CASH", "e-BANKING")
+        payment_options = OptionMenu(payment_info_frame, self.payment_option_menu, "CARD", "CASH", "EFT")
         payment_options.config(width=15)
         payment_options.config(relief=FLAT)
         payment_options.grid(row=4, column=1, padx=10, pady=5)
@@ -350,7 +350,7 @@ class BillerGUI:
                                           bd=1,
                                           bg=BACKGROUND,
                                           fg=FOREGROUND)
-        invoice_button_frame.place(x=0, y=885, width=1350, relwidth=0.5)
+        invoice_button_frame.place(x=0, y=730, width=1350, relwidth=0.5)
 
         generate_invoice = Button(invoice_button_frame,
                                   command=self.generate_pdf,
@@ -489,6 +489,7 @@ class BillerGUI:
 
 def gui():
     root = Tk()
+    root.state('zoomed')
     billerGUI = BillerGUI(root)
     root.mainloop()
 
