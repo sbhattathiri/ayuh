@@ -1,3 +1,3 @@
 ```commandline
-ayuh.bat /\path\to\ayuh src\gui.py 
+ayuh.bat C:\Users\indul\OneDrive\Desktop\Billing\ayuh -m src.gui 
 ```
