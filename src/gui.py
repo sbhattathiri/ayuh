@@ -1,10 +1,193 @@
-from datetime import date
+import configparser
+import os
+import sys
+import time
+from datetime import date, datetime
 from tkinter import *
 from tkinter import messagebox
 
-from src.config import LETTERHEAD_NAME, SOFTWARE_NAME, SOFTWARE_VERSION, GST, ICON, CONSULTATION_FEE, APPLY_GST
-from src.generate_pdf import create_pdf
+from fpdf import FPDF, HTMLMixin
+from jinja2 import FileSystemLoader, Environment
 
+
+def resource_path(relative_path):
+    """
+    for working with pyinstaller
+    from: https://stackoverflow.com/questions/7674790/bundling-data-files-with-pyinstaller-onefile
+    """
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
+
+"""
+read configs
+"""
+
+config_file = resource_path(os.path.join(os.getcwd(), "ayuh.ini"))
+config = configparser.ConfigParser()
+config.read(config_file, 'UTF-8')
+
+LETTERHEAD_NAME = config.get("letterhead", "letterhead_name")
+LETTERHEAD_MOTTO = config.get("letterhead", "letterhead_motto")
+LETTERHEAD_ADDR_LINE1 = config.get("letterhead", "letterhead_addr_line1")
+LETTERHEAD_ADDR_LINE2 = config.get("letterhead", "letterhead_addr_line2")
+LETTERHEAD_CONTACT1 = config.get("letterhead", "letterhead_contact1")
+LETTERHEAD_CONTACT2 = config.get("letterhead", "letterhead_contact2")
+LETTERHEAD_LOGO_IMAGE = resource_path(os.path.join(os.getcwd(), config.get("letterhead", "logo")))
+
+PAYMENT_BANK = config.get("bank", "bank_address")
+PAYMENT_ACCOUNT = config.get("bank", "bank_account")
+
+SOFTWARE_NAME = config.get("gui", "software_name")
+SOFTWARE_VERSION = config.get("gui", "software_version")
+ICON = resource_path(os.path.join(os.getcwd(), config.get("gui", "icon")))
+
+
+ABN = config.get("abn", "abn")
+
+APPLY_GST = True if config.get("gst", "apply_gst").lower() == 'true' else False
+GST = config.get("gst", "gst")
+
+CONSULTATION_FEE = config.get("fee", "consultation_fee")
+
+"""
+Creating invoice pdf
+"""
+class PDF(FPDF, HTMLMixin):
+    def header(self):
+        # mandatory line of code
+        self.set_font(family="Helvetica", style="B", size=13)
+        self.set_text_color(37, 153, 92)
+
+        # logo
+        self.image(name=LETTERHEAD_LOGO_IMAGE, x=10, y=5, w=20)
+
+        # title
+        title_width = self.get_string_width(LETTERHEAD_NAME) + 6
+        self.set_x((210 - title_width) / 2)
+        self.cell(w=title_width, h=2, txt='', border=0, new_y="NEXT", align="C")
+        self.set_x((210 - title_width) / 2)
+        self.cell(w=title_width, h=4, txt=LETTERHEAD_NAME, border=0, new_y="NEXT", align="C")
+
+        # motto
+        self.set_font("Helvetica", "I", 7)
+        self.set_text_color(92, 82, 77)
+        self.set_x((210 - title_width) / 2)
+        self.cell(w=title_width, h=4, txt=LETTERHEAD_MOTTO, border=0, align="C")
+
+        # contact
+        self.add_font('DejaVu', '', str(os.path.join(os.getcwd(), "DejaVuSansCondensed.ttf")))
+        self.set_font('DejaVu', '', 6)
+        self.set_text_color(0, 0, 0)
+        self.set_y(7)
+        self.set_x(170)
+        self.cell(w=40, h=4, txt=LETTERHEAD_ADDR_LINE1, border=0, new_y="NEXT", align="R")
+        self.set_x(170)
+        self.cell(w=40, h=4, txt=LETTERHEAD_ADDR_LINE2, border=0, new_y="NEXT", align="R")
+        self.set_x(170)
+        self.cell(w=40, h=4, txt=LETTERHEAD_CONTACT1, border=0, new_y="NEXT", align="R")
+        self.set_x(170)
+        self.cell(w=40, h=4, txt=LETTERHEAD_CONTACT2, border=0, new_y="NEXT", align="R")
+
+        # line
+        self.set_line_width(0.2)
+        self.set_draw_color(r=255, g=128, b=0)
+        self.line(x1=0, y1=25, x2=210, y2=25)
+
+    def footer(self):
+        self.set_y(-15)
+        self.set_font("Helvetica", "I", 6)
+        self.cell(0, 10, f"Page {self.page_no()}/{{nb}}", align="C")
+
+
+def calculate_gst(billed_items):
+    totalled_items = []
+    gst_total = 0
+    total = 0
+    for billed_item in billed_items:
+        totalled_item = {}
+
+        if billed_item['gst'] == 'NA':
+            item_gst_rate = 0.0
+        else:
+            item_gst_rate = billed_item['gst'] / 100
+
+        item_rate = billed_item['rate']
+
+        if billed_item['qty'] == '':
+            item_qty = 1
+        else:
+            item_qty = billed_item['qty']
+
+        item_total = round((item_rate * item_qty), 2)
+        total += item_total
+
+        item_gst = round((item_gst_rate * item_total), 2)
+        gst_total += item_gst
+
+        totalled_item['id'] = billed_item['id']
+        totalled_item['item'] = billed_item['item']
+        totalled_item['description'] = billed_item['description']
+        totalled_item['rate'] = billed_item['rate']
+        totalled_item['gst'] = '' if billed_item['gst'] == 'NA' else billed_item['gst']
+        totalled_item['qty'] = billed_item['qty']
+        totalled_item['amount'] = item_total
+        totalled_items.append(totalled_item)
+
+    return totalled_items, round(gst_total, 2), round(total, 2)
+
+
+def create_pdf(patient, billed_items, payment):
+    current_time = datetime.now()
+    patient_name = f"{patient['patient_last_name']}, {patient['patient_first_name']}"
+
+    invoice_number = f"{patient['patient_first_name'][0].upper()}" \
+                     f"{patient['patient_first_name'][-1].upper()}" \
+                     f"{patient['patient_last_name'][0].upper()}" \
+                     f"{patient['patient_last_name'][-1].upper()}" \
+                     f"{patient['consultation_date'].replace('-', '')}"
+
+    totalled_items, gst, total = calculate_gst(billed_items)
+
+    template_dir = os.getcwd()
+    file_loader = FileSystemLoader(str(template_dir))
+    env = Environment(loader=file_loader, autoescape=True)
+
+    pdf_name = f"{patient['patient_id']}_{time.time()}.pdf"
+    pdf_path = resource_path(os.path.join(os.getcwd(), f"bills/{pdf_name}"))
+
+    pdf = PDF()
+    pdf.add_page()
+    pdf.set_font("Courier", size=8)
+
+    invoice_items_html_template = env.get_template(f'invoice_template.html')
+    invoice_items_html = invoice_items_html_template.render(patient_name=patient_name,
+                                                            invoice_number=invoice_number,
+                                                            invoice_date=patient['consultation_date'],
+                                                            abn=ABN,
+                                                            invoice_items=totalled_items,
+                                                            total=total,
+                                                            apply_gst=APPLY_GST,
+                                                            gst=gst,
+                                                            payment_due_date=payment['payment_due_date'],
+                                                            payment_method=payment['payment_method'],
+                                                            payment_paid=payment['paid'],
+                                                            payment_bank=PAYMENT_BANK,
+                                                            payment_account=PAYMENT_ACCOUNT)
+    pdf.write_html(invoice_items_html, table_line_separators=False)
+
+    pdf.output(pdf_path)
+
+    return pdf_path
+
+
+"""
+GUI
+"""
 WIDTH = 600
 HEIGHT = 600
 X_OFFSET = 0
@@ -171,7 +354,7 @@ class BillerGUI:
                                          font=(TEXT_FONT, 10, 'normal'),
                                          bd=1,
                                          relief=SUNKEN,
-                                         #state="readonly",
+                                         # state="readonly",
                                          textvariable=header_text
                                          )
                     header_text.set(BILLING_COLUMN_NAMES_MAP[column])
@@ -489,7 +672,7 @@ class BillerGUI:
 
 def gui():
     root = Tk()
-    root.state('zoomed')
+    # root.state('zoomed')
     billerGUI = BillerGUI(root)
     root.mainloop()
 
