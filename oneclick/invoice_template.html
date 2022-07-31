@@ -89,12 +89,17 @@
         <td align="left" width="70%">A$ {{ '%0.2f' | format((total - payment_paid)|float) }}</td>
     </tr>
     {% endif %}
+    <br /><br />
     <tr>
-        <td align="left" width="30%">PAYMENT BANK</td>
+        <td align="left" width="30%">BANK ACCOUNT NAME</td>
+        <td align="left" width="70%">Ayurarogya</td>
+    </tr>
+    <tr>
+        <td align="left" width="30%">BANK BSB</td>
         <td align="left" width="70%">{{ payment_bank }}</td>
     </tr>
     <tr>
-        <td align="left" width="30%">PAYMENT ACCOUNT</td>
+        <td align="left" width="30%">BANK ACCOUNT NUMBER</td>
         <td align="left" width="70%">{{ payment_account }}</td>
     </tr>
 </table>

@@ -81,7 +81,7 @@ class PDF(FPDF, HTMLMixin):
 
         # contact
         self.add_font('DejaVu', '', str(os.path.join(os.getcwd(), "DejaVuSansCondensed.ttf")))
-        self.set_font('DejaVu', '', 6)
+        self.set_font('DejaVu', '', 9)
         self.set_text_color(0, 0, 0)
         self.set_y(7)
         self.set_x(170)
@@ -162,7 +162,7 @@ def create_pdf(patient, billed_items, payment):
 
     pdf = PDF()
     pdf.add_page()
-    pdf.set_font("Courier", size=8)
+    pdf.set_font("Courier", size=10)
 
     invoice_items_html_template = env.get_template(f'invoice_template.html')
     invoice_items_html = invoice_items_html_template.render(patient_name=patient_name,
@@ -672,7 +672,7 @@ class BillerGUI:
 
 def gui():
     root = Tk()
-    # root.state('zoomed')
+    root.state('zoomed')
     billerGUI = BillerGUI(root)
     root.mainloop()
 
