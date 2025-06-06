@@ -1,1 +1,8 @@
-fpdf
+# pdf
+fpdf2
+
+# template
+Jinja2==3.1.0
+
+# windows executable
+pyinstaller
